@@ -1,0 +1,34 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+
+# Os contratos do Uniswap v3 exigem Solidity =0.7.6; os testes usam 0.8.x.
+# O Foundry escolhe o compilador de cada arquivo pelo "pragma".
+auto_detect_solc = true
+
+# Mesmas opções da implantação oficial do Uniswap v3 (necessário para que o
+# POOL_INIT_CODE_HASH e os endereços das pools saiam iguais ao original).
+optimizer = true
+optimizer_runs = 800
+bytecode_hash = "none"
+cbor_metadata = false
+evm_version = "istanbul"
+
+# O Foundry só deixa os testes chamarem deployCode() de artefatos listados aqui.
+fs_permissions = [{ access = "read", path = "./out" }]
+
+remappings = [
+  "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+  "@uniswap/lib/=lib/solidity-lib/",
+  "@uniswap/v2-core/=lib/v2-core/",
+  "@uniswap/v3-core/=lib/v3-core/",
+  "@uniswap/v3-periphery/=lib/v3-periphery/",
+  "base64-sol/=lib/base64/",
+  "forge-std/=lib/forge-std/src/",
+]
+
+[fmt]
+line_length = 100
