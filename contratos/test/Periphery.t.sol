@@ -591,7 +591,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
         npm.tokenURI(999);
     }
 
-    function test_nft_tokenURI_withWrappedNativePair() public {
+    function test_nft_tokenURI_showsPol_notEth() public {
         _createPool(wpol, address(tA), 3000, PRICE_1);
         (int24 lo, int24 hi) = _full(3000);
         bytes[] memory calls = new bytes[](2);
@@ -600,14 +600,76 @@ contract PeripheryTest is Test, UniswapV3Deployer {
         vm.prank(user);
         npm.multicall{value: 20 ether}(calls);
 
-        // OBS (decisão pendente, ver docs/decisoes-pendentes.md): o descriptor original escreve "ETH"
-        // fixo no lugar do token embrulhado; o texto muda para "POL" só se alterarmos o periphery.
-        assertGt(bytes(npm.tokenURI(1)).length, 1000);
+        bytes memory uri = bytes(npm.tokenURI(1));
+        bytes memory json = _b64decode(_after(uri, "data:application/json;base64,"));
+        bytes memory svg = _b64decode(_after(json, "data:image/svg+xml;base64,"));
+
+        // O token embrulhado aparece como POL (e não ETH), tanto no JSON quanto no desenho (SVG).
+        assertTrue(_contains(json, "POL"), "JSON sem POL");
+        assertTrue(_contains(svg, "POL"), "SVG sem POL");
+        assertFalse(_contains(json, "ETH"), "JSON ainda tem ETH");
+        assertFalse(_contains(svg, "ETH"), "SVG ainda tem ETH");
+        assertTrue(_contains(json, "AAA"), "JSON sem o outro token");
     }
 
-    function test_nft_nameIsOriginalUniswap_pendingDecision() public view {
-        // Texto gravado no construtor original (ver docs/decisoes-pendentes.md).
-        assertEq(npm.name(), "Uniswap V3 Positions NFT-V1");
-        assertEq(npm.symbol(), "UNI-V3-POS");
+    function test_nft_nameAndSymbol_areKambiodex() public view {
+        assertEq(npm.name(), "KAMBIODEX V3 Positions");
+        assertEq(npm.symbol(), "KBX-V3-POS");
+    }
+
+    // ---- utilitários de texto (só para os testes do NFT)
+
+    function _contains(bytes memory hay, bytes memory needle) internal pure returns (bool) {
+        if (needle.length > hay.length) return false;
+        for (uint256 i = 0; i + needle.length <= hay.length; i++) {
+            bool ok = true;
+            for (uint256 j = 0; j < needle.length; j++) {
+                if (hay[i + j] != needle[j]) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) return true;
+        }
+        return false;
+    }
+
+    /// Texto que vem depois de `marker`, até a próxima aspa (") ou o fim.
+    function _after(bytes memory text, bytes memory marker) internal pure returns (bytes memory out) {
+        require(text.length >= marker.length, "texto curto");
+        for (uint256 i = 0; i + marker.length <= text.length; i++) {
+            bool ok = true;
+            for (uint256 j = 0; j < marker.length; j++) {
+                if (text[i + j] != marker[j]) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!ok) continue;
+            uint256 start = i + marker.length;
+            uint256 end = start;
+            while (end < text.length && text[end] != '"') end++;
+            out = new bytes(end - start);
+            for (uint256 k = 0; k < out.length; k++) out[k] = text[start + k];
+            return out;
+        }
+        revert("marcador nao encontrado");
+    }
+
+    function _b64decode(bytes memory data) internal pure returns (bytes memory out) {
+        bytes memory table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        uint8[256] memory rev;
+        for (uint256 i = 0; i < 64; i++) rev[uint8(table[i])] = uint8(i);
+        uint256 len = data.length;
+        uint256 pad = len > 0 && data[len - 1] == "=" ? (len > 1 && data[len - 2] == "=" ? 2 : 1) : 0;
+        out = new bytes((len / 4) * 3 - pad);
+        uint256 o;
+        for (uint256 i = 0; i < len; i += 4) {
+            uint256 n = (uint256(rev[uint8(data[i])]) << 18) | (uint256(rev[uint8(data[i + 1])]) << 12)
+                | (uint256(rev[uint8(data[i + 2])]) << 6) | uint256(rev[uint8(data[i + 3])]);
+            if (o < out.length) out[o++] = bytes1(uint8(n >> 16));
+            if (o < out.length) out[o++] = bytes1(uint8(n >> 8));
+            if (o < out.length) out[o++] = bytes1(uint8(n));
+        }
     }
 }

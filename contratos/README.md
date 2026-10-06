@@ -2,6 +2,11 @@
 
 Uniswap v3 original (core `v1.0.0`, periphery `v1.1.1`), sem alterar a lógica. Ver `../CLAUDE.md`.
 
+## Alterações no periphery
+
+Só dois arquivos foram alterados (nome/símbolo do NFT e rótulo POL), em `src/periphery/`; o resto vem de `lib/` sem alteração.
+Detalhes e diff exato: `../docs/ALTERACOES-PERIPHERY.md`.
+
 ## Testes (não gastam nada, rodam só no computador)
 
 ```
