@@ -17,8 +17,11 @@ bytecode_hash = "none"
 cbor_metadata = false
 evm_version = "istanbul"
 
-# O Foundry só deixa os testes chamarem deployCode() de artefatos listados aqui.
-fs_permissions = [{ access = "read", path = "./out" }]
+# Permissões de arquivo: ler os contratos compilados (out/) e gravar os endereços em deployments/.
+fs_permissions = [
+  { access = "read", path = "./out" },
+  { access = "read-write", path = "../deployments" },
+]
 
 remappings = [
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
@@ -29,6 +32,11 @@ remappings = [
   "base64-sol/=lib/base64/",
   "forge-std/=lib/forge-std/src/",
 ]
+
+# Endereços de RPC das redes de teste (definidos no .env; nunca no Git).
+[rpc_endpoints]
+amoy = "${AMOY_RPC_URL}"
+bnb_testnet = "${BNB_TESTNET_RPC_URL}"
 
 [fmt]
 line_length = 100
