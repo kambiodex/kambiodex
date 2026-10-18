@@ -142,3 +142,16 @@ e30d84739775512a999246570ce24b17bb5b00751c4258b22b3bce3b046aac8e  src/periphery/
 91d34c9bb608378c57cf78462b32cf275fb5ac0c7d975e2ecd58bf44412d89c5  lib/v3-periphery/contracts/NonfungibleTokenPositionDescriptor.sol
 803a9b342f513d44c00c26eaa02f08e81f02cceacdc35f5c8ef87744cbe149ec  src/periphery/NonfungibleTokenPositionDescriptor.sol
 ```
+
+---
+
+## Atualização (branch `mainnet-prep`, 18/10/2026)
+
+- `NonfungibleTokenPositionDescriptor` (cópia alterada do Uniswap) **saiu do código**. No lugar entrou o
+  `contratos/src/periphery/KambiodexPositionDescriptor.sol`, **escrito do zero**: nome do NFT no formato
+  `KAMBIODEX V3 Position - 0,3% - USDC/POL - MIN<>MAX`, descrição e SVG sem a palavra "Uniswap", WPOL mostrado como POL,
+  símbolos de token filtrados (sem injeção de JSON/SVG) e sem revert para tokens sem `symbol()`.
+- A biblioteca `NFTDescriptor` (UNLICENSED) **não é mais publicada**. A interface `IERC20Metadata` UNLICENSED foi trocada por
+  `contratos/src/interfaces/IERC20Metadata.sol` (MIT, escrita do zero).
+- Os contratos já publicados na Amoy continuam com o descriptor antigo (não foram tocados).
+- `NonfungiblePositionManager` (mudança só de nome/símbolo) e todo o v3-core: **inalterados**. `POOL_INIT_CODE_HASH` idêntico.

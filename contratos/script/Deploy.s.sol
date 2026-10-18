@@ -9,8 +9,8 @@ import {UniswapV3Deployer} from "./helpers/UniswapV3Deployer.sol";
 ///
 /// Redes aceitas: Polygon Amoy (80002), BNB Chain Testnet (97) e a rede local de testes (31337).
 /// Polygon (137) e BNB Chain (56) são BLOQUEADAS aqui de propósito: "nada em rede principal"
-/// até auditoria + liberação jurídica (CLAUDE.md). Para a rede principal, criar um script novo,
-/// revisado à parte.
+/// até auditoria + liberação jurídica (CLAUDE.md). Para a Polygon (rede principal) existe o script separado
+/// DeployPolygon.s.sol; este aqui continua só para testnets.
 ///
 /// Variáveis de ambiente (arquivo .env, fora do Git — NUNCA a chave privada):
 ///   OWNER_ADDRESS            carteira que será dona da Factory (obrigatória fora da rede local)

@@ -18,7 +18,8 @@ contract KambiodexAmoyForkTest is Test {
     address constant NPM = 0x990333bc228BC2B7dFF4c0D9A1959d77544CBdFa;
     address constant ROUTER = 0xfCda92d9dd56178e6F0BD33e73d185dcfF3f8218;
     address constant QUOTER = 0xbBA86ce67F5F96Bf155af3A71CE47c52D7B3492A;
-    address constant OWNER = 0xc6BB717dF718F68bd6727FC6fd7974206D7EB90c;
+    /// Dono atual da Factory na Amoy: a MetaMask do dono do projeto (o deployer 0xc6BB…B90c já passou a propriedade).
+    address constant OWNER = 0xB090F0cC1BD7ECCe0D5DA02C0c8566bA551Ede8f;
 
     uint24 constant FEE = 3000;
     uint160 constant PRICE_1 = 2 ** 96; // preço 1:1

@@ -85,10 +85,15 @@ contract DeployTest is Test, UniswapV3Deployer {
         vm.expectRevert("Defina OWNER_ADDRESS no .env");
         script.run();
 
-        // Com OWNER_ADDRESS: roda até o fim. Simulação (sem --broadcast) não grava arquivo.
+        // Com OWNER_ADDRESS: roda até o fim. Simulação (sem --broadcast) não grava nem altera arquivo:
+        // o amoy.json real do projeto (se existir) tem de ficar byte a byte igual.
+        string memory path = string.concat(vm.projectRoot(), "/../deployments/amoy.json");
+        bool existed = vm.exists(path);
+        bytes32 before = existed ? keccak256(bytes(vm.readFile(path))) : bytes32(0);
         vm.setEnv("OWNER_ADDRESS", vm.toString(owner));
         script.run();
-        assertFalse(vm.exists(string.concat(vm.projectRoot(), "/../deployments/amoy.json")));
+        assertEq(vm.exists(path), existed, "simulacao criou/apagou amoy.json");
+        if (existed) assertEq(keccak256(bytes(vm.readFile(path))), before, "simulacao alterou amoy.json");
     }
 
     function test_script_addressesJson_hasAllFields() public {
