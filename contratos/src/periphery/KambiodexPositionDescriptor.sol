@@ -108,24 +108,26 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         string memory intro =
             string(
                 abi.encodePacked(
-                    'This NFT represents a liquidity position in the KAMBIODEX V3 ', i.quoteSymbol, '/', i.baseSymbol,
-                    ' pool (fee ', _feeText(i.fee), '). The owner of this NFT can modify or redeem the position.'
+                    'Posicao de liquidez KAMBIODEX V3 no par ', i.quoteSymbol, '/', i.baseSymbol,
+                    ', taxa de ', _feeText(i.fee), '. Quem detem este NFT controla a posicao: pode aumentar,',
+                    ' reduzir, coletar as taxas ou encerrar a liquidez.'
                 )
             );
         string memory addrs =
             string(
                 abi.encodePacked(
-                    '\\n\\nPool address: ', _hex(i.pool),
-                    '\\nToken 0 address: ', _hex(i.token0),
-                    '\\nToken 1 address: ', _hex(i.token1)
+                    '\\n\\nContrato da pool: ', _hex(i.pool),
+                    '\\nEndereco do token 0: ', _hex(i.token0),
+                    '\\nEndereco do token 1: ', _hex(i.token1)
                 )
             );
         return
             string(
                 abi.encodePacked(
                     intro, addrs,
-                    '\\n\\nDISCLAIMER: Due diligence is imperative when assessing this NFT. Token symbols can be',
-                    ' imitated; confirm the token addresses above before trading or buying this NFT.'
+                    '\\n\\nATENCAO: qualquer pessoa pode criar um token com o mesmo nome ou simbolo de outro.',
+                    ' Antes de comprar, vender ou negociar este NFT, compare os enderecos dos tokens acima',
+                    ' com os enderecos oficiais.'
                 )
             );
     }

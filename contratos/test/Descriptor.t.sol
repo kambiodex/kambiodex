@@ -104,7 +104,11 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
         (MockERC20 q, MockERC20 b) = address(tA) < address(tB) ? (tB, tA) : (tA, tB);
         assertEq(name, string.concat("KAMBIODEX V3 Position - 0,3% - ", _sym(q), "/", _sym(b), " - MIN<>MAX"));
         assertTrue(_contains(bytes(desc), "KAMBIODEX"), "descricao sem a marca");
-        assertTrue(_contains(bytes(desc), "liquidity position"), "descricao");
+        assertTrue(_contains(bytes(desc), "Contrato da pool: 0x"), "descricao sem pool");
+        assertTrue(_contains(bytes(desc), "Endereco do token 0: 0x"), "descricao sem token0");
+        assertTrue(_contains(bytes(desc), "Endereco do token 1: 0x"), "descricao sem token1");
+        assertTrue(_contains(bytes(desc), "taxa de 0,3%"), "descricao sem taxa");
+        assertTrue(_contains(bytes(desc), "compare os enderecos"), "descricao sem aviso");
 
         bytes memory svg = _b64decode(_svgOf(json));
         assertTrue(_contains(svg, "KAMBIODEX"), "svg sem a marca");
