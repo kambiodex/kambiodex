@@ -53,7 +53,6 @@ contract Deploy is Script, UniswapV3Deployer {
         vm.stopBroadcast();
 
         console2.log("UniswapV3Factory:", d.factory);
-        console2.log("NFTDescriptor (lib):", d.nftDescriptorLib);
         console2.log("NonfungibleTokenPositionDescriptor:", d.descriptor);
         console2.log("NonfungiblePositionManager:", d.positionManager);
         console2.log("SwapRouter:", d.router);
@@ -72,8 +71,7 @@ contract Deploy is Script, UniswapV3Deployer {
         string memory k = "kambiodex_deployment";
         vm.serializeUint(k, "chainId", block.chainid);
         vm.serializeAddress(k, "UniswapV3Factory", d.factory);
-        vm.serializeAddress(k, "NFTDescriptor", d.nftDescriptorLib);
-        vm.serializeAddress(k, "NonfungibleTokenPositionDescriptor", d.descriptor);
+        vm.serializeAddress(k, "KambiodexPositionDescriptor", d.descriptor);
         vm.serializeAddress(k, "NonfungiblePositionManager", d.positionManager);
         vm.serializeAddress(k, "SwapRouter", d.router);
         vm.serializeAddress(k, "QuoterV2", d.quoter);

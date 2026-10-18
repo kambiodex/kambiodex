@@ -15,7 +15,6 @@ interface IPeripheryImmutableState {
 abstract contract UniswapV3Deployer is CommonBase {
     struct Deployed {
         address factory;
-        address nftDescriptorLib;
         address descriptor;
         address positionManager;
         address router;
@@ -40,10 +39,9 @@ abstract contract UniswapV3Deployer is CommonBase {
         d.factory = _create("UniswapV3Factory.sol:UniswapV3Factory", "");
         IUniswapV3Factory(d.factory).enableFeeAmount(FEE_100, SPACING_100); // 0,01% (só o dono pode)
 
-        // 2) Periphery (descriptor sem proxy, conforme CLAUDE.md)
-        d.nftDescriptorLib = _create("NFTDescriptor.sol:NFTDescriptor", "");
-        d.descriptor = _deployLinked(
-            "NonfungibleTokenPositionDescriptor", d.nftDescriptorLib, abi.encode(wrappedNative)
+        // 2) Periphery (descriptor próprio da KAMBIODEX, sem proxy e sem biblioteca externa)
+        d.descriptor = _create(
+            "KambiodexPositionDescriptor.sol:KambiodexPositionDescriptor", abi.encode(wrappedNative, _nativeLabel())
         );
         d.positionManager = _create(
             "NonfungiblePositionManager.sol:NonfungiblePositionManager",
@@ -78,16 +76,9 @@ abstract contract UniswapV3Deployer is CommonBase {
         require(IPeripheryImmutableState(d.descriptor).WETH9() == d.wrappedNative, "descriptor errado");
     }
 
-    // ------------------------------------------------------------ ligação de biblioteca
-
-    /// @dev O descriptor usa a biblioteca NFTDescriptor "por fora". O compilador deixa no código
-    ///      um marcador `__$...$__` (40 caracteres) no lugar do endereço da biblioteca; aqui
-    ///      trocamos o marcador pelo endereço real e criamos o contrato.
-    function _deployLinked(string memory name, address lib, bytes memory ctorArgs) internal returns (address addr) {
-        string memory path = string.concat(vm.projectRoot(), "/out/", name, ".sol/", name, ".json");
-        string memory code = vm.parseJsonString(vm.readFile(path), ".bytecode.object");
-        bytes memory initCode = abi.encodePacked(vm.parseBytes(_link(code, lib)), ctorArgs);
-        addr = _createRaw(initCode);
+    /// Rótulo da moeda nativa no desenho do NFT: BNB na BNB Chain (56/97); POL nas demais (Polygon e testes).
+    function _nativeLabel() internal view returns (bytes32) {
+        return (block.chainid == 56 || block.chainid == 97) ? bytes32("BNB") : bytes32("POL");
     }
 
     /// Cria um contrato a partir do artefato compilado (out/) + argumentos do construtor.
@@ -100,28 +91,5 @@ abstract contract UniswapV3Deployer is CommonBase {
             addr := create(0, add(initCode, 0x20), mload(initCode))
         }
         require(addr != address(0), "falha ao criar contrato");
-    }
-
-    function _link(string memory code, address lib) internal pure returns (string memory) {
-        bytes memory b = bytes(code);
-        bytes memory h = "0123456789abcdef";
-        bytes memory libHex = new bytes(40);
-        for (uint256 k = 0; k < 20; k++) {
-            uint8 v = uint8(uint160(lib) >> (8 * (19 - k)));
-            libHex[2 * k] = h[v >> 4];
-            libHex[2 * k + 1] = h[v & 0x0f];
-        }
-        uint256 replaced;
-        for (uint256 i = 0; i + 40 <= b.length; i++) {
-            if (b[i] == "_" && b[i + 1] == "_" && b[i + 2] == "$") {
-                for (uint256 j = 0; j < 40; j++) {
-                    b[i + j] = libHex[j];
-                }
-                i += 39;
-                replaced++;
-            }
-        }
-        require(replaced > 0, "nenhum marcador de biblioteca");
-        return string(b);
     }
 }

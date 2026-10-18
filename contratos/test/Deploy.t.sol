@@ -34,18 +34,8 @@ contract DeployTest is Test, UniswapV3Deployer {
         assertEq(npm.factory(), d.factory);
         assertEq(npm.WETH9(), wrapped);
         assertEq(IDescriptorWETH(d.descriptor).WETH9(), wrapped);
-        assertGt(d.nftDescriptorLib.code.length, 0);
         assertGt(d.router.code.length, 0);
         assertGt(d.quoter.code.length, 0);
-    }
-
-    function test_deployAll_descriptorIsLinkedToLibrary() public {
-        Deployed memory d = deployAll(wrapped, owner);
-        // Se a ligação com a biblioteca estivesse errada, o marcador "__$" sobraria no código ou o
-        // tokenURI falharia (isso é testado de ponta a ponta em Periphery.t.sol).
-        bytes memory code = d.descriptor.code;
-        bytes memory libAddr = abi.encodePacked(d.nftDescriptorLib);
-        assertTrue(_contains(code, libAddr), "endereco da biblioteca ausente no descriptor");
     }
 
     function test_deployAll_keepsOwnerWhenNoFinalOwner() public {
@@ -112,25 +102,9 @@ contract DeployTest is Test, UniswapV3Deployer {
         assertEq(vm.parseJsonAddress(json, ".NonfungiblePositionManager"), d.positionManager);
         assertEq(vm.parseJsonAddress(json, ".SwapRouter"), d.router);
         assertEq(vm.parseJsonAddress(json, ".QuoterV2"), d.quoter);
-        assertEq(vm.parseJsonAddress(json, ".NonfungibleTokenPositionDescriptor"), d.descriptor);
-        assertEq(vm.parseJsonAddress(json, ".NFTDescriptor"), d.nftDescriptorLib);
+        assertEq(vm.parseJsonAddress(json, ".KambiodexPositionDescriptor"), d.descriptor);
         assertEq(vm.parseJsonAddress(json, ".WrappedNative"), wrapped);
         assertEq(vm.parseJsonAddress(json, ".owner"), owner);
         assertEq(vm.parseJsonBytes32(json, ".poolInitCodeHash"), POOL_INIT_CODE_HASH);
-    }
-
-    function _contains(bytes memory hay, bytes memory needle) internal pure returns (bool) {
-        if (needle.length > hay.length) return false;
-        for (uint256 i = 0; i + needle.length <= hay.length; i++) {
-            bool ok = true;
-            for (uint256 j = 0; j < needle.length; j++) {
-                if (hay[i + j] != needle[j]) {
-                    ok = false;
-                    break;
-                }
-            }
-            if (ok) return true;
-        }
-        return false;
     }
 }
