@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity =0.8.24;
 
 /// @title KAMBIODEX Token Registry
 /// @notice Lista simples e pública de tokens: 0 = sem decisão, 1 = na lista da KAMBIODEX, 2 = bloqueado.
