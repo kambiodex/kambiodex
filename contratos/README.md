@@ -4,7 +4,7 @@ Uniswap v3 original (core `v1.0.0`, periphery `v1.1.1`), sem alterar a lógica. 
 
 ## Alterações no periphery
 
-Só dois arquivos foram alterados (nome/símbolo do NFT e rótulo POL), em `src/periphery/`; o resto vem de `lib/` sem alteração.
+Só um arquivo do Uniswap foi alterado (`NonfungiblePositionManager`: nome/símbolo do NFT), em `src/periphery/`; o resto vem de `lib/` sem alteração. O descriptor do NFT (`KambiodexPositionDescriptor`) é novo, escrito do zero. Lista completa: `../CHANGES.md`.
 Detalhes e diff exato: `../docs/ALTERACOES-PERIPHERY.md`.
 
 ## Testes (não gastam nada, rodam só no computador)

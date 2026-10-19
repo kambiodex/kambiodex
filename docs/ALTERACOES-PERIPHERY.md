@@ -3,35 +3,38 @@
 Base: `Uniswap/v3-periphery` tag **v1.1.1** (submódulo `contratos/lib/v3-periphery`, **não alterado**).
 Decisão do dono em 06/10/2026: alterar o mínimo, só dois pontos. **O v3-core não foi alterado.**
 
+> **Estado atual (18/10/2026, branch `mainnet-prep`):** só **um** arquivo do periphery está modificado:
+> `NonfungiblePositionManager`. O `NonfungibleTokenPositionDescriptor` modificado foi retirado e substituído pelo
+> `KambiodexPositionDescriptor`, escrito do zero (ver "Atualização" no fim). Lista oficial de mudanças em inglês: `../CHANGES.md`.
+> Este documento guarda o histórico de 06/10/2026; o ponto 2 abaixo está **obsoleto**.
+
 ## Resumo
 
-| # | Onde | Antes | Depois |
-|---|------|-------|--------|
-| 1 | `NonfungiblePositionManager` (construtor) | nome `Uniswap V3 Positions NFT-V1`, símbolo `UNI-V3-POS` | nome `KAMBIODEX V3 Positions`, símbolo `KBX-V3-POS` |
-| 2 | `NonfungibleTokenPositionDescriptor` (2 trechos) | `'ETH'` para o token embrulhado (WPOL) | `'POL'` |
+| # | Onde | Antes | Depois | Situação |
+|---|------|-------|--------|----------|
+| 1 | `NonfungiblePositionManager` (construtor) | nome `Uniswap V3 Positions NFT-V1`, símbolo `UNI-V3-POS` | nome `KAMBIODEX V3 Positions`, símbolo `KBX-V3-POS` | **vigente** |
+| 2 | `NonfungibleTokenPositionDescriptor` (2 trechos) | `'ETH'` para o token embrulhado (WPOL) | `'POL'` | **obsoleto** (arquivo retirado; o novo descriptor mostra POL) |
 
-Além dos dois pontos, só mudou o que é obrigatório para compilar fora da pasta original:
+Além disso, no `NonfungiblePositionManager` só mudou o que é obrigatório para compilar fora da pasta original:
 - os `import './...'` viraram `import '@uniswap/v3-periphery/contracts/...'` (mesmos arquivos, mesmo conteúdo);
-- um aviso de modificação no topo (3 linhas de comentário), como a GPL pede. **A licença `GPL-2.0-or-later` foi mantida**
-  no `SPDX-License-Identifier` dos dois arquivos.
+- um aviso de modificação no topo (4 linhas de comentário), como a GPL pede. **A licença `GPL-2.0-or-later` foi mantida**
+  no `SPDX-License-Identifier`.
 
-Nenhuma lógica de pool, preço, taxa ou dinheiro foi tocada. As cópias alteradas ficam em `contratos/src/periphery/`
-(o `deploy` e os testes usam essas cópias; os originais continuam em `lib/` só como referência/dependência).
+Nenhuma lógica de pool, preço, taxa ou dinheiro foi tocada. A cópia alterada fica em `contratos/src/periphery/`
+(o `deploy` e os testes usam essa cópia; o original continua em `lib/` só como referência/dependência).
 
 ## O que NÃO mudou (de propósito)
-- `libraries/NFTDescriptor.sol` (biblioteca, UNLICENSED) continua escrevendo **"Uniswap"** no metadado do NFT:
-  linha 115 `'This NFT represents a liquidity position in a Uniswap V3 '` e linha 163 `'Uniswap - '`. Ver `duvidas-para-advogado.md`, ponto 4.
-- O rótulo `POL` é específico da Polygon. Na fase 2 (BNB Chain) o rótulo deveria ser `BNB`: será preciso outra cópia/parametrização.
-- `POOL_INIT_CODE_HASH` e todo o v3-core continuam idênticos ao oficial (conferido em 06/10/2026).
+- O v3-core inteiro. `POOL_INIT_CODE_HASH` idêntico ao oficial.
+- O rótulo `POL` é específico da Polygon. Na fase 2 (BNB Chain) o rótulo deve ser `BNB`: o `KambiodexPositionDescriptor`
+  recebe o rótulo no construtor (`nativeLabel`), então basta publicar outro com `BNB`.
 
 ## Como conferir
 ```
 cd contratos
 diff -u lib/v3-periphery/contracts/NonfungiblePositionManager.sol src/periphery/NonfungiblePositionManager.sol
-diff -u lib/v3-periphery/contracts/NonfungibleTokenPositionDescriptor.sol src/periphery/NonfungibleTokenPositionDescriptor.sol
 git -C lib/v3-core status --short          # vazio = núcleo intacto
 git -C lib/v3-periphery status --short     # vazio = original intacto
-forge test                                 # inclui os testes do nome e do rótulo POL
+forge test                                 # inclui os testes do nome do NFT e do descriptor
 ```
 
 ## Diff exato
@@ -89,7 +92,7 @@ forge test                                 # inclui os testes do nome e do rótu
  
 ```
 
-### 2) NonfungibleTokenPositionDescriptor.sol
+### 2) NonfungibleTokenPositionDescriptor.sol (OBSOLETO — arquivo retirado em 18/10/2026)
 ```diff
 --- a/contracts/NonfungibleTokenPositionDescriptor.sol
 +++ b/src/periphery/NonfungibleTokenPositionDescriptor.sol
