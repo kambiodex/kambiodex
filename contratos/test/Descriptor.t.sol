@@ -102,13 +102,13 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
 
         // token1 é o "quote": BBB/AAA se AAA < BBB em endereço, e AAA/BBB no caso contrário.
         (MockERC20 q, MockERC20 b) = address(tA) < address(tB) ? (tB, tA) : (tA, tB);
-        assertEq(name, string.concat("KAMBIODEX V3 Position - 0,3% - ", _sym(q), "/", _sym(b), " - MIN<>MAX"));
+        assertEq(name, string.concat("KAMBIODEX V3 Position - 0.3% - ", _sym(q), "/", _sym(b), " - MIN<>MAX"));
         assertTrue(_contains(bytes(desc), "KAMBIODEX"), "descricao sem a marca");
-        assertTrue(_contains(bytes(desc), "Contrato da pool: 0x"), "descricao sem pool");
-        assertTrue(_contains(bytes(desc), "Endereco do token 0: 0x"), "descricao sem token0");
-        assertTrue(_contains(bytes(desc), "Endereco do token 1: 0x"), "descricao sem token1");
-        assertTrue(_contains(bytes(desc), "taxa de 0,3%"), "descricao sem taxa");
-        assertTrue(_contains(bytes(desc), "compare os enderecos"), "descricao sem aviso");
+        assertTrue(_contains(bytes(desc), "Pool address: 0x"), "descricao sem pool");
+        assertTrue(_contains(bytes(desc), "Token 0 address: 0x"), "descricao sem token0");
+        assertTrue(_contains(bytes(desc), "Token 1 address: 0x"), "descricao sem token1");
+        assertTrue(_contains(bytes(desc), "fee tier 0.3%"), "descricao sem taxa");
+        assertTrue(_contains(bytes(desc), "compare the token addresses"), "descricao sem aviso");
 
         bytes memory svg = _b64decode(_svgOf(json));
         assertTrue(_contains(svg, "KAMBIODEX"), "svg sem a marca");
@@ -130,7 +130,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
 
     function test_feeTexts() public {
         uint24[4] memory fees = [uint24(100), 500, 3000, 10000];
-        string[4] memory txt = ["0,01%", "0,05%", "0,3%", "1%"];
+        string[4] memory txt = ["0.01%", "0.05%", "0.3%", "1%"];
         for (uint256 k = 0; k < 4; k++) {
             (int24 lo, int24 hi) = _full(fees[k]);
             uint256 id = _mint(address(tA), address(tB), fees[k], lo, hi, PRICE_1);
@@ -157,7 +157,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
 
         bytes memory json = _json(1);
         string memory name = vm.parseJsonString(string(json), ".name");
-        assertEq(name, "KAMBIODEX V3 Position - 0,3% - AAA/POL - MIN<>MAX");
+        assertEq(name, "KAMBIODEX V3 Position - 0.3% - AAA/POL - MIN<>MAX");
         assertFalse(_contains(json, "WPOL"), "WPOL apareceu");
         assertTrue(_contains(_b64decode(_svgOf(json)), "AAA/POL"), "svg sem AAA/POL");
         assertFalse(_contains(_b64decode(_svgOf(json)), "WPOL"), "svg com WPOL");
@@ -168,7 +168,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
         string memory name = _name(id);
         // 1,0001^-600 = 0,94176...  e  1,0001^600 = 1,06183...  (preço token1 por token0)
         (MockERC20 q, MockERC20 b) = address(tA) < address(tB) ? (tB, tA) : (tA, tB);
-        assertEq(name, string.concat("KAMBIODEX V3 Position - 0,3% - ", _sym(q), "/", _sym(b), " - 0.9417<>1.0618"));
+        assertEq(name, string.concat("KAMBIODEX V3 Position - 0.3% - ", _sym(q), "/", _sym(b), " - 0.9417<>1.0618"));
         // posição dentro da faixa
         assertTrue(_contains(_b64decode(_svgOf(_json(id))), "IN RANGE"));
     }

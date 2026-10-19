@@ -108,26 +108,26 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         string memory intro =
             string(
                 abi.encodePacked(
-                    'Posicao de liquidez KAMBIODEX V3 no par ', i.quoteSymbol, '/', i.baseSymbol,
-                    ', taxa de ', _feeText(i.fee), '. Quem detem este NFT controla a posicao: pode aumentar,',
-                    ' reduzir, coletar as taxas ou encerrar a liquidez.'
+                    'KAMBIODEX V3 liquidity position for the pair ', i.quoteSymbol, '/', i.baseSymbol,
+                    ', fee tier ', _feeText(i.fee), '. Whoever holds this NFT controls the position: they can add',
+                    ' liquidity, remove it, collect the fees or close the position.'
                 )
             );
         string memory addrs =
             string(
                 abi.encodePacked(
-                    '\\n\\nContrato da pool: ', _hex(i.pool),
-                    '\\nEndereco do token 0: ', _hex(i.token0),
-                    '\\nEndereco do token 1: ', _hex(i.token1)
+                    '\\n\\nPool address: ', _hex(i.pool),
+                    '\\nToken 0 address: ', _hex(i.token0),
+                    '\\nToken 1 address: ', _hex(i.token1)
                 )
             );
         return
             string(
                 abi.encodePacked(
                     intro, addrs,
-                    '\\n\\nATENCAO: qualquer pessoa pode criar um token com o mesmo nome ou simbolo de outro.',
-                    ' Antes de comprar, vender ou negociar este NFT, compare os enderecos dos tokens acima',
-                    ' com os enderecos oficiais.'
+                    '\\n\\nWARNING: anyone can create a token with the same name or symbol as another token.',
+                    ' Before buying, selling or trading this NFT, compare the token addresses above',
+                    ' with the official addresses.'
                 )
             );
     }
@@ -176,7 +176,7 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         return i.tickCurrent >= i.tickLower && i.tickCurrent < i.tickUpper ? 'IN RANGE' : 'OUT OF RANGE';
     }
 
-    /// 100 -> "0,01%", 500 -> "0,05%", 3000 -> "0,3%", 10000 -> "1%".
+    /// 100 -> "0.01%", 500 -> "0.05%", 3000 -> "0.3%", 10000 -> "1%".
     function _feeText(uint24 fee) private pure returns (string memory) {
         uint256 whole = fee / 10000;
         uint256 frac = fee % 10000; // 4 casas
@@ -190,7 +190,7 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         while (len > 0 && digits[len - 1] == '0') len--;
         bytes memory trimmed = new bytes(len);
         for (uint256 k = 0; k < len; k++) trimmed[k] = digits[k];
-        return string(abi.encodePacked(_uint(whole), ',', trimmed, '%'));
+        return string(abi.encodePacked(_uint(whole), '.', trimmed, '%'));
     }
 
     // ------------------------------------------------------------------ faixa de preço
