@@ -37,6 +37,7 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         address pool;
         int24 tickCurrent;
         int24 spacing;
+        bool fullRange; // true: a posição cobre do menor ao maior tick utilizável da taxa
         bool flip; // true: o token base é o token1 (WPOL), preço = token0 por token1
         string quoteSymbol;
         string baseSymbol;
@@ -77,6 +78,8 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         i.flip = i.token1 == WETH9 && i.token0 != WETH9;
         i.baseSymbol = _symbol(i.flip ? i.token1 : i.token0);
         i.quoteSymbol = _symbol(i.flip ? i.token0 : i.token1);
+        (int24 usableMin, int24 usableMax) = _usableTicks(i.spacing);
+        i.fullRange = i.tickLower <= usableMin && i.tickUpper >= usableMax;
         (i.minText, i.maxText) = _rangeTexts(i);
 
         string memory name = _name(i);
@@ -99,7 +102,7 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
             string(
                 abi.encodePacked(
                     'KAMBIODEX V3 Position - ', _feeText(i.fee), ' - ', i.quoteSymbol, '/', i.baseSymbol,
-                    ' - ', i.minText, '<>', i.maxText
+                    ' - ', i.fullRange ? 'FULL RANGE' : string(abi.encodePacked(i.minText, '<>', i.maxText))
                 )
             );
     }
@@ -152,7 +155,9 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
                 )
             );
         string memory range =
-            string(
+            i.fullRange
+                ? '<text x="28" y="260" font-size="16">FULL RANGE</text>'
+                : string(
                 abi.encodePacked(
                     '<text x="28" y="240" font-size="12" opacity="0.7">MIN</text>',
                     '<text x="28" y="260" font-size="16">', i.minText, '</text>',
@@ -207,6 +212,11 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
         maxText = _edgeText(tickForMax, i.spacing, i.flip, dec0, dec1);
     }
 
+    function _usableTicks(int24 spacing) private pure returns (int24 usableMin, int24 usableMax) {
+        usableMin = spacing > 0 ? (TickMath.MIN_TICK / spacing) * spacing : TickMath.MIN_TICK;
+        usableMax = spacing > 0 ? (TickMath.MAX_TICK / spacing) * spacing : TickMath.MAX_TICK;
+    }
+
     function _edgeText(int24 tick, int24 spacing, bool flip, uint8 dec0, uint8 dec1)
         private
         view
@@ -214,8 +224,7 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
     {
         // Ponta extrema = menor/maior tick utilizável da faixa de taxa (faixa completa).
         // Sem o espaçamento (pool ilegível) não dá para saber: usa os limites absolutos.
-        int24 usableMin = spacing > 0 ? (TickMath.MIN_TICK / spacing) * spacing : TickMath.MIN_TICK;
-        int24 usableMax = spacing > 0 ? (TickMath.MAX_TICK / spacing) * spacing : TickMath.MAX_TICK;
+        (int24 usableMin, int24 usableMax) = _usableTicks(spacing);
         if (tick <= usableMin) return flip ? 'MAX' : 'MIN';
         if (tick >= usableMax) return flip ? 'MIN' : 'MAX';
 

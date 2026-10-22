@@ -152,7 +152,7 @@ e30d84739775512a999246570ce24b17bb5b00751c4258b22b3bce3b046aac8e  src/periphery/
 
 - `NonfungibleTokenPositionDescriptor` (cópia alterada do Uniswap) **saiu do código**. No lugar entrou o
   `contratos/src/periphery/KambiodexPositionDescriptor.sol`, **escrito do zero**: nome do NFT no formato
-  `KAMBIODEX V3 Position - 0.3% - USDC/POL - MIN<>MAX`, descrição e SVG sem a palavra "Uniswap", WPOL mostrado como POL,
+  `KAMBIODEX V3 Position - 0.3% - USDC/POL - FULL RANGE`, descrição e SVG sem a palavra "Uniswap", WPOL mostrado como POL,
   símbolos de token filtrados (sem injeção de JSON/SVG) e sem revert para tokens sem `symbol()`.
 - A biblioteca `NFTDescriptor` (UNLICENSED) **não é mais publicada**. A interface `IERC20Metadata` UNLICENSED foi trocada por
   `contratos/src/interfaces/IERC20Metadata.sol` (MIT, escrita do zero).

@@ -102,7 +102,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
 
         // token1 é o "quote": BBB/AAA se AAA < BBB em endereço, e AAA/BBB no caso contrário.
         (MockERC20 q, MockERC20 b) = address(tA) < address(tB) ? (tB, tA) : (tA, tB);
-        assertEq(name, string.concat("KAMBIODEX V3 Position - 0.3% - ", _sym(q), "/", _sym(b), " - MIN<>MAX"));
+        assertEq(name, string.concat("KAMBIODEX V3 Position - 0.3% - ", _sym(q), "/", _sym(b), " - FULL RANGE"));
         assertTrue(_contains(bytes(desc), "KAMBIODEX"), "descricao sem a marca");
         assertTrue(_contains(bytes(desc), "Pool address: 0x"), "descricao sem pool");
         assertTrue(_contains(bytes(desc), "Token 0 address: 0x"), "descricao sem token0");
@@ -136,7 +136,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
             uint256 id = _mint(address(tA), address(tB), fees[k], lo, hi, PRICE_1);
             string memory name = _name(id);
             assertTrue(_contains(bytes(name), bytes(string.concat(" - ", txt[k], " - "))), name);
-            assertTrue(_endsWith(bytes(name), "MIN<>MAX"), "faixa completa: MIN<>MAX em todas as faixas de taxa");
+            assertTrue(_endsWith(bytes(name), "FULL RANGE"), "faixa completa: FULL RANGE em todas as faixas de taxa");
         }
     }
 
@@ -157,7 +157,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
 
         bytes memory json = _json(1);
         string memory name = vm.parseJsonString(string(json), ".name");
-        assertEq(name, "KAMBIODEX V3 Position - 0.3% - AAA/POL - MIN<>MAX");
+        assertEq(name, "KAMBIODEX V3 Position - 0.3% - AAA/POL - FULL RANGE");
         assertFalse(_contains(json, "WPOL"), "WPOL apareceu");
         assertTrue(_contains(_b64decode(_svgOf(json)), "AAA/POL"), "svg sem AAA/POL");
         assertFalse(_contains(_b64decode(_svgOf(json)), "WPOL"), "svg com WPOL");
@@ -171,6 +171,68 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
         assertEq(name, string.concat("KAMBIODEX V3 Position - 0.3% - ", _sym(q), "/", _sym(b), " - 0.9417<>1.0618"));
         // posição dentro da faixa
         assertTrue(_contains(_b64decode(_svgOf(_json(id))), "IN RANGE"));
+    }
+
+    function _count(bytes memory h, bytes memory n) internal pure returns (uint256 c) {
+        if (n.length == 0 || h.length < n.length) return 0;
+        for (uint256 i = 0; i + n.length <= h.length; i++) {
+            bool ok = true;
+            for (uint256 j = 0; j < n.length; j++) {
+                if (h[i + j] != n[j]) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) c++;
+        }
+    }
+
+    function test_fullRange_nameAndImage_perFee() public {
+        uint24[3] memory fees = [uint24(500), 3000, 10000];
+        string[3] memory txt = ["0.05%", "0.3%", "1%"];
+        (MockERC20 q, MockERC20 b) = address(tA) < address(tB) ? (tB, tA) : (tA, tB);
+        for (uint256 k = 0; k < 3; k++) {
+            (int24 lo, int24 hi) = _full(fees[k]);
+            uint256 id = _mint(address(tA), address(tB), fees[k], lo, hi, PRICE_1);
+            assertEq(
+                _name(id),
+                string.concat("KAMBIODEX V3 Position - ", txt[k], " - ", _sym(q), "/", _sym(b), " - FULL RANGE")
+            );
+            bytes memory svg = _b64decode(_svgOf(_json(id)));
+            assertEq(_count(svg, "FULL RANGE"), 1, "FULL RANGE deve aparecer uma vez");
+            assertFalse(_contains(svg, ">MIN<"), "sem rotulo MIN");
+            assertFalse(_contains(svg, ">MAX<"), "sem rotulo MAX");
+            assertTrue(_contains(svg, "IN RANGE"), "status mantido");
+        }
+    }
+
+    function test_normalRange_nameAndImage_perFee() public {
+        uint24[3] memory fees = [uint24(500), 3000, 10000];
+        string[3] memory txt = ["0.05%", "0.3%", "1%"];
+        (MockERC20 q, MockERC20 b) = address(tA) < address(tB) ? (tB, tA) : (tA, tB);
+        for (uint256 k = 0; k < 3; k++) {
+            int24 s = factory.feeAmountTickSpacing(fees[k]);
+            int24 w = (600 / s) * s;
+            if (w == 0) w = s;
+            uint256 id = _mint(address(tA), address(tB), fees[k], -w, w, PRICE_1);
+            string memory name = _name(id);
+            string memory prefix =
+                string.concat("KAMBIODEX V3 Position - ", txt[k], " - ", _sym(q), "/", _sym(b), " - ");
+            assertTrue(_startsWith(bytes(name), bytes(prefix)), name);
+            assertTrue(_contains(bytes(name), "<>"), "faixa normal: min<>max");
+            assertFalse(_contains(bytes(name), "FULL RANGE"), "faixa normal nao e FULL RANGE");
+            bytes memory svg = _b64decode(_svgOf(_json(id)));
+            assertEq(_count(svg, "FULL RANGE"), 0);
+            assertEq(_count(svg, ">MIN<"), 1, "rotulo MIN mantido");
+            assertEq(_count(svg, ">MAX<"), 1, "rotulo MAX mantido");
+        }
+    }
+
+    function test_halfExtremeRange_isNotFullRange() public {
+        (int24 lo,) = _full(3000);
+        uint256 id = _mint(address(tA), address(tB), 3000, lo, 0, PRICE_1 * 2);
+        assertFalse(_contains(bytes(_name(id)), "FULL RANGE"));
+        assertEq(_count(_b64decode(_svgOf(_json(id))), "FULL RANGE"), 0);
     }
 
     function test_outOfRangeStatus() public {

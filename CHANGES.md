@@ -39,7 +39,7 @@ SHA-256 modified  e30d84739775512a999246570ce24b17bb5b00751c4258b22b3bce3b046aac
 |---|---|---|---|
 | `contratos/src/Core.sol` | GPL-2.0-or-later | `d8ace52ae2a721ed7e19af75ea89f697ce89098af7a4501cad240febfe0962e1` | Imports `UniswapV3Factory` and `UniswapV3Pool` so they compile from this project |
 | `contratos/src/Periphery.sol` | GPL-2.0-or-later | `b306df10faf8e597516e8819cf61d262023e19f92ec4d05c86755c31a6535dc1` | Imports `SwapRouter` and `QuoterV2` |
-| `contratos/src/periphery/KambiodexPositionDescriptor.sol` | GPL-2.0-or-later | `4f275b734c470cafcdb1ecf2d0abcbfeb4f1d99b86dec30f0ce0604bb7670350` | `tokenURI` generator for position NFTs; replaces upstream `NonfungibleTokenPositionDescriptor` and `NFTDescriptor` |
+| `contratos/src/periphery/KambiodexPositionDescriptor.sol` | GPL-2.0-or-later | `10fab403ab0d48660828b18810afb22c662f930c09e92fd8758514b7d7af935c` | `tokenURI` generator for position NFTs; replaces upstream `NonfungibleTokenPositionDescriptor` and `NFTDescriptor` |
 | `contratos/src/interfaces/IERC20Metadata.sol` | MIT | `d2c7022a475698fede1301937e061a9ece3f7a06f5f97e53c26503eebed335a8` | Minimal `name/symbol/decimals` interface; replaces the UNLICENSED upstream one |
 
 `KambiodexPositionDescriptor` implements the unchanged upstream interface `INonfungibleTokenPositionDescriptor`.

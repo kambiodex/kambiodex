@@ -162,7 +162,7 @@ contract PolygonMainnetForkTest is Test, UniswapV3Deployer, TextUtils {
         bytes memory uri = bytes(npm.tokenURI(id));
         bytes memory json = _b64decode(_tail(uri, "data:application/json;base64,"));
         string memory name = vm.parseJsonString(string(json), ".name");
-        assertEq(name, "KAMBIODEX V3 Position - 0.3% - USDC/POL - MIN<>MAX");
+        assertEq(name, "KAMBIODEX V3 Position - 0.3% - USDC/POL - FULL RANGE");
         assertFalse(_contains(_lower(json), "uniswap"));
         assertFalse(_contains(json, "WPOL"));
     }
