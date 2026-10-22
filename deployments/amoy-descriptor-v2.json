@@ -1,0 +1,10 @@
+{
+  "KambiodexPositionDescriptor": "0xdD2803bcE03CD8aD55111dB91950221FaC9D9005",
+  "NonfungiblePositionManager": "0xE5b1b872cC7B799255fAe176957036CA28fB635F",
+  "UniswapV3Factory": "0x4E98D1d960f6198fA4dAA79e2e013f710e021cd3",
+  "WrappedNative": "0x80aF0DC1AEc3fAF0d8Bd9abEE9f85B347617969b",
+  "chainId": 80002,
+  "descriptorSourceCommit": "0b4ee67",
+  "nativeLabel": "0x504f4c0000000000000000000000000000000000000000000000000000000000",
+  "poolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
+}
