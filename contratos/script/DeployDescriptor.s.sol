@@ -45,7 +45,7 @@ contract DeployDescriptor is Script {
     string internal constant IN_FILE = "/../deployments/amoy.json";
     string internal constant OUT_FILE = "/../deployments/amoy-descriptor-v2.json";
     // Commit do código do descriptor publicado por este script (faixa completa mostra FULL RANGE).
-    string internal constant SOURCE_COMMIT = "0b4ee67";
+    string internal constant SOURCE_COMMIT = "594e7ba";
 
     function run() external {
         require(block.chainid == AMOY_CHAIN_ID, "So Polygon Amoy (chainId 80002)");

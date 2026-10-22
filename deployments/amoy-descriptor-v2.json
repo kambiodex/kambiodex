@@ -4,7 +4,7 @@
   "UniswapV3Factory": "0x4E98D1d960f6198fA4dAA79e2e013f710e021cd3",
   "WrappedNative": "0x80aF0DC1AEc3fAF0d8Bd9abEE9f85B347617969b",
   "chainId": 80002,
-  "descriptorSourceCommit": "0b4ee67",
+  "descriptorSourceCommit": "594e7ba",
   "nativeLabel": "0x504f4c0000000000000000000000000000000000000000000000000000000000",
   "poolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
 }
