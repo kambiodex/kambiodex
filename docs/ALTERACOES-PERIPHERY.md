@@ -164,5 +164,5 @@ e30d84739775512a999246570ce24b17bb5b00751c4258b22b3bce3b046aac8e  src/periphery/
 O metadado do NFT que antes citava a marca do projeto original (no nome e na descrição, vindo da biblioteca `NFTDescriptor`)
 foi substituído pelo `KambiodexPositionDescriptor`, próprio da KAMBIODEX. Os textos gerados não trazem essa marca.
 Posições de faixa completa (menor ao maior tick utilizável da taxa) mostram `FULL RANGE` no nome e na imagem
-(commit `594e7ba`). O deploy de teste com esse descriptor e um Manager novo na Amoy está em
+(commit `cb3cf9e`). O deploy de teste com esse descriptor e um Manager novo na Amoy está em
 `deployments/amoy-descriptor-v2.json`; o `amoy.json` e o `amoy-descriptor.json` seguem como registro dos deploys anteriores.
