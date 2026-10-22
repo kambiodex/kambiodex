@@ -32,7 +32,7 @@ interface IErc20Like {
 /// O Manager novo começa SEM posições; as posições do Manager antigo continuam no Manager antigo.
 ///
 /// Só a Amoy. Qualquer outra rede faz o script parar.
-/// O resultado vai para deployments/amoy-descriptor.json (o amoy.json NUNCA é alterado) e só é gravado
+/// O resultado vai para deployments/amoy-descriptor-v2.json (o amoy.json e o amoy-descriptor.json do deploy anterior NUNCA são alterados) e só é gravado
 /// em envio de verdade (--broadcast); simulação não grava nada. Se o arquivo já existir, o script para.
 ///
 /// Uso (simulação, não gasta nada):  forge script script/DeployDescriptor.s.sol --rpc-url amoy
@@ -43,14 +43,16 @@ contract DeployDescriptor is Script {
     bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
 
     string internal constant IN_FILE = "/../deployments/amoy.json";
-    string internal constant OUT_FILE = "/../deployments/amoy-descriptor.json";
+    string internal constant OUT_FILE = "/../deployments/amoy-descriptor-v2.json";
+    // Commit do código do descriptor publicado por este script (faixa completa mostra FULL RANGE).
+    string internal constant SOURCE_COMMIT = "0b4ee67";
 
     function run() external {
         require(block.chainid == AMOY_CHAIN_ID, "So Polygon Amoy (chainId 80002)");
 
         string memory inPath = string.concat(vm.projectRoot(), IN_FILE);
         string memory outPath = string.concat(vm.projectRoot(), OUT_FILE);
-        require(!vm.exists(outPath), "amoy-descriptor.json ja existe: nao sobrescrevo");
+        require(!vm.exists(outPath), "amoy-descriptor-v2.json ja existe: nao sobrescrevo");
 
         string memory j = vm.readFile(inPath);
         require(vm.parseJsonUint(j, ".chainId") == AMOY_CHAIN_ID, "amoy.json nao e da Amoy");
@@ -84,6 +86,7 @@ contract DeployDescriptor is Script {
             vm.serializeAddress(k, "UniswapV3Factory", factory);
             vm.serializeAddress(k, "WrappedNative", wrapped);
             vm.serializeAddress(k, "KambiodexPositionDescriptor", descriptor);
+            vm.serializeString(k, "descriptorSourceCommit", SOURCE_COMMIT);
             vm.serializeBytes32(k, "nativeLabel", NATIVE_LABEL);
             vm.serializeBytes32(k, "poolInitCodeHash", POOL_INIT_CODE_HASH);
             string memory out = vm.serializeAddress(k, "NonfungiblePositionManager", manager);
