@@ -24,6 +24,11 @@ interface IErc20Like {
     function decimals() external view returns (uint8);
 }
 
+/// @custom:status OBSOLETO para o deploy novo da Amoy (código renomeado, out/2026). O deploy novo é feito por inteiro
+///         pelo Deploy.s.sol (grava deployments/amoy-kambiodex-v1.json), com Factory, descriptor e periphery novos.
+///         Este script reaproveita a Factory ANTIGA (deployments/amoy.json, hash da pool antigo) e por isso a trava
+///         de hash abaixo o impede de rodar. Fica só como histórico do deploy anterior; NÃO usar.
+///
 /// @notice Publica SÓ o KambiodexPositionDescriptor e um NonfungiblePositionManager novo na POLYGON AMOY (80002),
 ///         reaproveitando a Factory e o token embrulhado (WPOL) já publicados em deployments/amoy.json.
 ///         SwapRouter e QuoterV2 não mudam (não dependem do descriptor).

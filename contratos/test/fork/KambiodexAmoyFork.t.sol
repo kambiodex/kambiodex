@@ -5,31 +5,50 @@ import {Test} from "forge-std/Test.sol";
 import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
 import {IKambiodexPool} from "@kambiodex/core/interfaces/IKambiodexPool.sol";
 import {MockERC20} from "../helpers/MockERC20.sol";
+import {TextUtils} from "../helpers/TextUtils.sol";
 import {INPM, ISwapRouterLike, IQuoterV2Like} from "../helpers/IPeriphery.sol";
 
+interface IDescriptorFork {
+    function WETH9() external view returns (address);
+    function nativeLabel() external view returns (bytes32);
+}
+
 /// @notice Simulação 100% local sobre os contratos JÁ PUBLICADOS na Polygon Amoy (chainId 80002).
+///
+///         ESTE TESTE DEPENDE DO DEPLOY NOVO (código renomeado, KambiodexPool etc.): os endereços NÃO ficam
+///         escritos aqui; são lidos de deployments/amoy-kambiodex-v1.json, que só existe depois que o dono
+///         roda Deploy.s.sol com --broadcast. Enquanto o arquivo não existir, todos os testes são PULADOS
+///         (de propósito: rodar contra o deploy antigo, de antes da renomeação, não prova nada sobre este código).
+///         Os arquivos antigos (amoy.json, amoy-descriptor*.json) ficam como histórico e não são usados aqui.
+///
 ///         Usa um "fork": o Foundry copia o estado da rede para a memória e roda tudo ali.
 ///         Nada é enviado à rede real: sem chave, sem keystore, sem --broadcast e sem gás.
 ///         O "dono" da Factory é imitado com vm.prank, que só funciona dentro do fork.
-contract KambiodexAmoyForkTest is Test {
+contract KambiodexAmoyForkTest is Test, TextUtils {
     string constant RPC = "https://polygon-amoy-bor-rpc.publicnode.com";
 
-    address constant FACTORY = 0x4E98D1d960f6198fA4dAA79e2e013f710e021cd3;
-    address constant NPM = 0x990333bc228BC2B7dFF4c0D9A1959d77544CBdFa;
-    address constant ROUTER = 0xfCda92d9dd56178e6F0BD33e73d185dcfF3f8218;
-    address constant QUOTER = 0xbBA86ce67F5F96Bf155af3A71CE47c52D7B3492A;
-    /// Dono atual da Factory na Amoy: a MetaMask do dono do projeto (o deployer 0xc6BB…B90c já passou a propriedade).
-    address constant OWNER = 0xB090F0cC1BD7ECCe0D5DA02C0c8566bA551Ede8f;
+    /// Arquivo gravado pelo Deploy.s.sol (--broadcast). DEPENDE DO DEPLOY NOVO.
+    string constant DEPLOY_FILE = "/../deployments/amoy-kambiodex-v1.json";
+
+    // Endereços do deploy novo, lidos do arquivo acima em setUp().
+    address factoryAddr;
+    address npmAddr;
+    address routerAddr;
+    address quoterAddr;
+    address descriptorAddr;
+    /// Dono da Factory depois do deploy = OWNER_ADDRESS usado no deploy (a MetaMask do dono do projeto).
+    address ownerAddr;
+    bytes32 jsonPoolInitCodeHash;
 
     uint24 constant FEE = 3000;
     uint160 constant PRICE_1 = 2 ** 96; // preço 1:1
     int24 constant FULL_TICK = 887220; // maior múltiplo de 60 dentro do limite (faixa completa)
     uint128 constant U128_MAX = type(uint128).max;
 
-    IKambiodexFactory factory = IKambiodexFactory(FACTORY);
-    INPM npm = INPM(NPM);
-    ISwapRouterLike router = ISwapRouterLike(ROUTER);
-    IQuoterV2Like quoter = IQuoterV2Like(QUOTER);
+    IKambiodexFactory factory;
+    INPM npm;
+    ISwapRouterLike router;
+    IQuoterV2Like quoter;
 
     MockERC20 t0;
     MockERC20 t1;
@@ -40,6 +59,25 @@ contract KambiodexAmoyForkTest is Test {
     uint256 tokenId;
 
     function setUp() public {
+        // DEPENDE DO DEPLOY NOVO: sem o arquivo de endereços, pula tudo.
+        string memory path = string.concat(vm.projectRoot(), DEPLOY_FILE);
+        if (!vm.exists(path)) {
+            vm.skip(true, "deploy novo da Amoy ainda nao feito: falta deployments/amoy-kambiodex-v1.json");
+        }
+        string memory json = vm.readFile(path);
+        assertEq(vm.parseJsonUint(json, ".chainId"), 80002, "arquivo nao e da Amoy");
+        factoryAddr = vm.parseJsonAddress(json, ".KambiodexFactory");
+        npmAddr = vm.parseJsonAddress(json, ".NonfungiblePositionManager");
+        routerAddr = vm.parseJsonAddress(json, ".SwapRouter");
+        quoterAddr = vm.parseJsonAddress(json, ".QuoterV2");
+        descriptorAddr = vm.parseJsonAddress(json, ".KambiodexPositionDescriptor");
+        ownerAddr = vm.parseJsonAddress(json, ".owner");
+        jsonPoolInitCodeHash = vm.parseJsonBytes32(json, ".poolInitCodeHash");
+        factory = IKambiodexFactory(factoryAddr);
+        npm = INPM(npmAddr);
+        router = ISwapRouterLike(routerAddr);
+        quoter = IQuoterV2Like(quoterAddr);
+
         vm.createSelectFork(RPC);
         assertEq(block.chainid, 80002, "nao e a Amoy");
 
@@ -53,10 +91,10 @@ contract KambiodexAmoyForkTest is Test {
             t0.mint(people[i], 1e30);
             t1.mint(people[i], 1e30);
             vm.startPrank(people[i]);
-            t0.approve(NPM, type(uint256).max);
-            t1.approve(NPM, type(uint256).max);
-            t0.approve(ROUTER, type(uint256).max);
-            t1.approve(ROUTER, type(uint256).max);
+            t0.approve(npmAddr, type(uint256).max);
+            t1.approve(npmAddr, type(uint256).max);
+            t0.approve(routerAddr, type(uint256).max);
+            t1.approve(routerAddr, type(uint256).max);
             vm.stopPrank();
         }
 
@@ -98,12 +136,12 @@ contract KambiodexAmoyForkTest is Test {
 
     // (1) estado dos contratos publicados
     function test_1_published_state() public view {
-        assertEq(factory.owner(), OWNER, "dono da Factory");
+        assertEq(factory.owner(), ownerAddr, "dono da Factory");
         assertEq(factory.feeAmountTickSpacing(100), 1, "faixa 0,01% habilitada");
         assertEq(factory.feeAmountTickSpacing(500), 10, "faixa 0,05%");
         assertEq(factory.feeAmountTickSpacing(3000), 60, "faixa 0,30%");
         assertEq(factory.feeAmountTickSpacing(10000), 200, "faixa 1%");
-        assertEq(npm.factory(), FACTORY, "NPM aponta para a Factory publicada");
+        assertEq(npm.factory(), factoryAddr, "NPM aponta para a Factory publicada");
     }
 
     // (2) pool criada, preço inicializado e liquidez adicionada
@@ -145,7 +183,7 @@ contract KambiodexAmoyForkTest is Test {
         // só o dono liga (imitado dentro do fork)
         vm.expectRevert();
         pool.setFeeProtocol(6, 6);
-        vm.prank(OWNER);
+        vm.prank(ownerAddr);
         pool.setFeeProtocol(6, 6);
         (,,,,, uint8 feeProtocol,) = pool.slot0();
         assertEq(feeProtocol, (6 << 4) | 6, "feeProtocol = 6,6");
@@ -173,7 +211,7 @@ contract KambiodexAmoyForkTest is Test {
         pool.collectProtocol(treasury, U128_MAX, U128_MAX);
 
         // o dono coleta (o v3 deixa 1 wei na pool de propósito)
-        vm.prank(OWNER);
+        vm.prank(ownerAddr);
         (uint128 got0, uint128 got1) = pool.collectProtocol(treasury, U128_MAX, U128_MAX);
         assertEq(got0, p0 - 1);
         assertEq(got1, p1 - 1);
@@ -182,6 +220,19 @@ contract KambiodexAmoyForkTest is Test {
         (uint128 r0, uint128 r1) = pool.protocolFees();
         assertEq(r0, 1);
         assertEq(r1, 1);
+    }
+
+    // (7) hash da pool e descriptor do deploy novo
+    function test_7_pool_hash_and_descriptor() public view {
+        // o hash gravado no JSON é o do bytecode da KambiodexPool compilada neste projeto
+        assertEq(jsonPoolInitCodeHash, keccak256(vm.getCode("KambiodexPool.sol:KambiodexPool")), "hash do JSON");
+        // (a prova on-chain é o test_2: o NPM calcula o endereço da pool com o hash e a Factory cria no mesmo endereço)
+        IDescriptorFork ds = IDescriptorFork(descriptorAddr);
+        assertEq(ds.nativeLabel(), bytes32("POL"), "rotulo da moeda nativa");
+        assertTrue(ds.WETH9() != address(0), "WETH9 do descriptor");
+        bytes memory uri = bytes(npm.tokenURI(tokenId));
+        assertTrue(_startsWith(uri, "data:application/json;base64,"), "formato do tokenURI");
+        assertFalse(_contains(_lower(uri), "uniswap"), "tokenURI nao pode citar a marca");
     }
 
     // (6) nome/símbolo do NFT da posição

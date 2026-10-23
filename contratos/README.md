@@ -28,16 +28,20 @@ A chave privada **nunca** vai em arquivo: use uma carteira criptografada do Foun
 
 1. `cp .env.example .env` e preencher `AMOY_RPC_URL` e `OWNER_ADDRESS` (só endereços públicos).
 2. Guardar a chave de quem paga o deploy (a chave é digitada no terminal, por você):
-   `cast wallet import deployer --interactive`
-3. **Simulação** (não envia nada, só confere): 
-   `forge script script/Deploy.s.sol --rpc-url amoy --account deployer`
-4. Deploy de verdade (gasta POL de teste): o mesmo comando com `--broadcast`.
-   Os endereços são gravados em `../deployments/amoy.json`.
+   `cast wallet import kambiodex-deployer --interactive` (já existe uma com esse nome na máquina do dono)
+3. **Simulação** (não envia nada, só confere; `--sender` é só o endereço público de quem paga):
+   `OWNER_ADDRESS=0x... WRAPPED_NATIVE_ADDRESS=0x... forge script script/Deploy.s.sol --rpc-url amoy --sender 0xSEU_ENDERECO`
+4. Deploy de verdade (gasta POL de teste): o mesmo comando com `--account kambiodex-deployer --broadcast`.
+   Os endereços são gravados em **`../deployments/amoy-kambiodex-v1.json`** (arquivo novo; o script recusa rodar se ele já
+   existir). Os arquivos `amoy.json`, `amoy-descriptor*.json` são do deploy ANTIGO (antes da renomeação) e ficam só como histórico.
+   `script/DeployDescriptor.s.sol` também é do deploy antigo e está obsoleto.
+   Depois do deploy: `forge test --match-path "test/fork/KambiodexAmoyFork.t.sol"` (esses testes leem o arquivo novo e são
+   pulados enquanto ele não existir) e `script/TesteFluxo.s.sol` (teste real do fluxo, lê o mesmo arquivo).
 5. Depois de criar as pools, ligar a parte da exchange (precisa ser a carteira dona da Factory):
    `POOL_ADDRESSES=0x...,0x... forge script script/SetFeeProtocol.s.sol --rpc-url amoy --account owner --broadcast`
 
 O que o `Deploy.s.sol` faz, em ordem: Factory → habilita a faixa de 0,01% (a original não vem com ela) →
-NFTDescriptor (biblioteca) → descriptor (sem proxy) → NonfungiblePositionManager → SwapRouter → QuoterV2 →
+`KambiodexPositionDescriptor` (sem proxy e sem biblioteca externa) → NonfungiblePositionManager → SwapRouter → QuoterV2 →
 passa a propriedade da Factory para `OWNER_ADDRESS` → confere tudo (se algo estiver errado, o script falha).
 
 Sem `WRAPPED_NATIVE_ADDRESS`, ele cria um WPOL/WBNB **de teste** (`src/testnet/`). Em rede principal usa-se o oficial.

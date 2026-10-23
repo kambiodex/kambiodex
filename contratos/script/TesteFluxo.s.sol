@@ -25,7 +25,8 @@ interface IPoolLike {
 }
 
 /// @notice Teste REAL do fluxo completo na Polygon Amoy (80002), com os contratos já publicados
-///         (endereços lidos de deployments/amoy.json).
+///         (endereços lidos de deployments/amoy-kambiodex-v1.json, o arquivo do deploy novo feito por Deploy.s.sol;
+///         o amoy.json antigo é do deploy anterior à renomeação e NÃO é usado).
 ///
 /// Passos: cria 2 tokens de teste -> aprova NFT manager e roteador -> cria/inicializa a pool
 /// (taxa 0,30%, preço 1:1) -> adiciona liquidez (faixa completa) -> troca pequena -> setFeeProtocol(6,6)
@@ -58,7 +59,7 @@ contract TesteFluxo is Script {
     function run() external {
         require(block.chainid == 80002, "So na Polygon Amoy (80002)");
 
-        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/../deployments/amoy.json"));
+        string memory json = vm.readFile(string.concat(vm.projectRoot(), "/../deployments/amoy-kambiodex-v1.json"));
         address factory = json.readAddress(".KambiodexFactory");
         Ctx memory c;
         c.npm = INPM(json.readAddress(".NonfungiblePositionManager"));
