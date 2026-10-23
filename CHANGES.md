@@ -36,10 +36,10 @@ Modification notice: the 24 copied files whose identifiers were renamed carry th
 Proof: each of the 68 copied files, with the names above mapped back and the notice line removed, was compared with the
 upstream file. **67 are identical; the only difference is the `POOL_INIT_CODE_HASH` line of Modification 2.**
 Comments do not affect the bytecode: the deploy tests check the pool hash and pass. The 43 other copied files are
-byte-identical to upstream, except `PoolAddress.sol` (Modification 2).
+byte-identical to upstream.
 
-`PoolAddress.sol` has no renamed identifier, so it does not carry the line above; its change (the hash constant) is
-listed in Modification 2.
+`PoolAddress.sol` has no renamed identifier, so it carries its own notice, also right below the original SPDX header
+(see Modification 2). Against upstream, its only differences are that notice line and the hash constant.
 
 ## Modification 2 — `POOL_INIT_CODE_HASH`
 
@@ -47,6 +47,8 @@ listed in Modification 2.
 
 - upstream: `0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54`
 - KAMBIODEX: `0xefa1523a9c693954cc7417070043ba156e89adf78e52919814d859ef413bac17`
+
+Notice in the file: `// Modified by KAMBIODEX (Oct 2026): POOL_INIT_CODE_HASH updated for the renamed pool. See CHANGES.md and NOTICE.md.`
 
 The pool bytecode changed only because the callback function names (and therefore their 4-byte selectors) changed.
 The compiler settings are the same as upstream (solc 0.7.6, optimizer runs 800, `bytecode_hash = none`).

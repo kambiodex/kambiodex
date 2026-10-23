@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+// Modified by KAMBIODEX (Oct 2026): POOL_INIT_CODE_HASH updated for the renamed pool. See CHANGES.md and NOTICE.md.
 pragma solidity >=0.5.0;
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
