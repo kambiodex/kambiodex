@@ -137,6 +137,16 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
             );
     }
 
+    /// Os textos de preço só têm dígitos, '.' e, abaixo de 1e-8, um '<' inicial ("<0.00000001"):
+    /// dentro do SVG (XML) o '<' precisa sair como "&lt;" para a imagem ser válida.
+    function _xml(string memory s) private pure returns (string memory) {
+        bytes memory b = bytes(s);
+        if (b.length == 0 || b[0] != '<') return s;
+        bytes memory rest = new bytes(b.length - 1);
+        for (uint256 k = 1; k < b.length; k++) rest[k - 1] = b[k];
+        return string(abi.encodePacked('&lt;', rest));
+    }
+
     function _svg(uint256 tokenId, Info memory i) private pure returns (string memory) {
         string memory head =
             string(
@@ -162,9 +172,9 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
                 : string(
                 abi.encodePacked(
                     '<text x="28" y="240" font-size="12" opacity="0.7">MIN</text>',
-                    '<text x="28" y="260" font-size="16">', i.minText, '</text>',
+                    '<text x="28" y="260" font-size="16">', _xml(i.minText), '</text>',
                     '<text x="28" y="288" font-size="12" opacity="0.7">MAX</text>',
-                    '<text x="28" y="308" font-size="16">', i.maxText, '</text>'
+                    '<text x="28" y="308" font-size="16">', _xml(i.maxText), '</text>'
                 )
             );
         string memory tail =

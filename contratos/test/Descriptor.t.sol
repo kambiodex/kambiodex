@@ -253,6 +253,88 @@ contract DescriptorTest is Test, KambiodexDeployer, TextUtils {
         assertEq(ds.priceText(-6932, false, 18, 18), "0.4999"); // 0,49998 (corta, não arredonda)
     }
 
+    /// Preço da faixa < 1e-8: o texto "<0.00000001" entra no SVG como "&lt;" e o SVG continua XML válido.
+    function test_tinyPrice_svgIsValidXml() public {
+        // Um token de 6 casas de cada lado de tA (18 casas): em uma das ordens o preço humano é ~1e-12.
+        MockERC20 lowT;
+        MockERC20 highT;
+        for (uint256 n = 0; n < 40 && (address(lowT) == address(0) || address(highT) == address(0)); n++) {
+            MockERC20 t = new MockERC20("Six", "SIX", 6);
+            if (address(t) < address(tA)) {
+                if (address(lowT) == address(0)) lowT = t;
+            } else if (address(highT) == address(0)) {
+                highT = t;
+            }
+        }
+        assertTrue(address(lowT) != address(0) && address(highT) != address(0), "tokens de teste");
+        MockERC20[2] memory sixes = [lowT, highT];
+        uint256 tiny;
+        for (uint256 k = 0; k < 2; k++) {
+            _fund(address(sixes[k]));
+            uint256 id = _mint(address(sixes[k]), address(tA), 3000, -600, 600, PRICE_1);
+            bytes memory svg = _b64decode(_svgOf(_json(id)));
+            _assertValidXml(svg);
+            assertFalse(_contains(svg, "><0.00000001<"), "'<' solto no SVG");
+            tiny += _count(svg, ">&lt;0.00000001<");
+        }
+        assertGt(tiny, 0, "nenhum caso com preco < 1e-8");
+    }
+
+    /// Conferência mínima de XML bem-formado: '<' só abre tag, '&' só entidade conhecida, tags balanceadas.
+    function _assertValidXml(bytes memory x) internal pure {
+        bytes32[64] memory stack;
+        uint256 depth;
+        uint256 i;
+        while (i < x.length) {
+            bytes1 c = x[i];
+            if (c == "&") {
+                require(
+                    _startsAt(x, i, "&lt;") || _startsAt(x, i, "&gt;") || _startsAt(x, i, "&amp;")
+                        || _startsAt(x, i, "&quot;") || _startsAt(x, i, "&apos;"),
+                    "entidade invalida"
+                );
+                i++;
+            } else if (c == ">") {
+                revert("'>' fora de tag");
+            } else if (c == "<") {
+                bool closing = x[i + 1] == "/";
+                uint256 j = i + (closing ? 2 : 1);
+                uint256 nameStart = j;
+                bytes1 b = x[j];
+                require((b >= "a" && b <= "z") || (b >= "A" && b <= "Z"), "'<' sem nome de tag");
+                while (x[j] != " " && x[j] != ">" && x[j] != "/") j++;
+                bytes32 name = keccak256(abi.encodePacked(_slice(x, nameStart, j)));
+                // anda até o '>' respeitando aspas
+                bool inQuote;
+                bool selfClose;
+                while (true) {
+                    require(j < x.length, "tag sem fim");
+                    if (x[j] == '"') inQuote = !inQuote;
+                    else if (!inQuote && x[j] == "<") revert("'<' dentro de tag");
+                    else if (!inQuote && x[j] == ">") break;
+                    selfClose = (!inQuote && x[j] == "/");
+                    j++;
+                }
+                if (closing) {
+                    require(depth > 0 && stack[depth - 1] == name, "fechamento errado");
+                    depth--;
+                } else if (!selfClose) {
+                    stack[depth++] = name;
+                }
+                i = j + 1;
+            } else {
+                i++;
+            }
+        }
+        require(depth == 0, "tags abertas");
+    }
+
+    function _startsAt(bytes memory x, uint256 at, bytes memory p) internal pure returns (bool) {
+        if (at + p.length > x.length) return false;
+        for (uint256 k = 0; k < p.length; k++) if (x[at + k] != p[k]) return false;
+        return true;
+    }
+
     function test_extremeTicks_neverRevert() public {
         // Faixas completas em todas as taxas (pontas extremas) já foram testadas; aqui, perto do limite.
         uint24[4] memory fees = [uint24(100), 500, 3000, 10000];
