@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+// Modified by KAMBIODEX (Oct 2026): identifiers renamed (Uniswap* -> Kambiodex*); no logic changes. See CHANGES.md and NOTICE.md.
 pragma solidity =0.7.6;
 
 import './interfaces/IKambiodexPoolDeployer.sol';

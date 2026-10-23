@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+// Modified by KAMBIODEX (Oct 2026): identifiers renamed (Uniswap* -> Kambiodex*); no logic changes. See CHANGES.md and NOTICE.md.
 pragma solidity >=0.5.0;
 
 /// @title An interface for a contract that is capable of deploying Uniswap V3 Pools

@@ -26,8 +26,20 @@ Pangolin-style rename so that no deployed contract name contains "Uniswap". **No
 
 Names without "Uniswap" (`NonfungiblePositionManager`, `SwapRouter`, `QuoterV2`, `TickLens`, libraries) are unchanged.
 
-Proof: each of the 68 copied files, with the names above mapped back, was compared with the upstream file.
-**67 are identical; the only difference is the `POOL_INIT_CODE_HASH` line of Modification 2.**
+Modification notice: the 24 copied files whose identifiers were renamed carry this line right below the original
+`SPDX-License-Identifier` header (the original headers and copyright notices are untouched):
+
+```
+// Modified by KAMBIODEX (Oct 2026): identifiers renamed (Uniswap* -> Kambiodex*); no logic changes. See CHANGES.md and NOTICE.md.
+```
+
+Proof: each of the 68 copied files, with the names above mapped back and the notice line removed, was compared with the
+upstream file. **67 are identical; the only difference is the `POOL_INIT_CODE_HASH` line of Modification 2.**
+Comments do not affect the bytecode: the deploy tests check the pool hash and pass. The 43 other copied files are
+byte-identical to upstream, except `PoolAddress.sol` (Modification 2).
+
+`PoolAddress.sol` has no renamed identifier, so it does not carry the line above; its change (the hash constant) is
+listed in Modification 2.
 
 ## Modification 2 — `POOL_INIT_CODE_HASH`
 
