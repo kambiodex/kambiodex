@@ -28,6 +28,10 @@ interface IPoolLike {
 ///         (endereços lidos de deployments/amoy-kambiodex-v1.json, o arquivo do deploy novo feito por Deploy.s.sol;
 ///         o amoy.json antigo é do deploy anterior à renomeação e NÃO é usado).
 ///
+/// A carteira que assina (--account) NÃO precisa ser a dona da Factory. Hoje o dono é a Trezor: as etapas que só o dono
+/// pode fazer (setFeeProtocol e collectProtocol) são PULADAS quando quem assina não é o dono, e ficam para a Trezor
+/// (o relatório mostra o endereço da pool). Se quem assina for o dono, o script faz tudo, como antes.
+///
 /// Passos: cria 2 tokens de teste -> aprova NFT manager e roteador -> cria/inicializa a pool
 /// (taxa 0,30%, preço 1:1) -> adiciona liquidez (faixa completa) -> troca pequena -> setFeeProtocol(6,6)
 /// -> trocas nos dois sentidos -> confere protocolFees e faz collectProtocol para a carteira do dono.
@@ -48,7 +52,9 @@ contract TesteFluxo is Script {
     uint256 constant SWAP = 5e18;
 
     struct Ctx {
-        address owner;
+        address owner; // dono da Factory (do JSON)
+        address me; // quem assina e paga (--account); recebe tokens, NFT e trocas
+        bool meIsOwner;
         INPM npm;
         ISwapRouterLike router;
         address pool;
@@ -68,12 +74,14 @@ contract TesteFluxo is Script {
         require(IFactoryLike(factory).owner() == c.owner, "Dono da Factory diferente do JSON");
 
         vm.startBroadcast(); // assinatura vem de --account / --ledger (ou --sender na simulacao)
+        (, c.me,) = vm.readCallers(); // endereço que está assinando
+        c.meIsOwner = c.me == c.owner;
 
         // (1) dois ERC20 de teste, com saldo para o dono
         MockERC20 a = new MockERC20("KDX Teste A", "KTA", 18);
         MockERC20 b = new MockERC20("KDX Teste B", "KTB", 18);
-        a.mint(c.owner, SALDO);
-        b.mint(c.owner, SALDO);
+        a.mint(c.me, SALDO);
+        b.mint(c.me, SALDO);
         (c.t0, c.t1) = address(a) < address(b) ? (address(a), address(b)) : (address(b), address(a));
 
         // (2) aprovações
@@ -96,7 +104,7 @@ contract TesteFluxo is Script {
                 amount1Desired: LIQUIDEZ,
                 amount0Min: 0,
                 amount1Min: 0,
-                recipient: c.owner,
+                recipient: c.me,
                 deadline: block.timestamp + 1200
             })
         );
@@ -106,10 +114,12 @@ contract TesteFluxo is Script {
         (uint128 p0, uint128 p1) = IPoolLike(c.pool).protocolFees();
         require(p0 == 0 && p1 == 0, "Nao deveria haver taxa do protocolo antes do setFeeProtocol");
 
-        // (5) liga a parte da exchange: 1/6 da taxa
-        IPoolLike(c.pool).setFeeProtocol(6, 6);
-        (,,,,, uint8 fp,) = IPoolLike(c.pool).slot0();
-        require(fp == (6 << 4) | 6, "setFeeProtocol nao ficou 6,6");
+        // (5) liga a parte da exchange: 1/6 da taxa. Só o dono da Factory pode; se não for quem assina, pula.
+        if (c.meIsOwner) {
+            IPoolLike(c.pool).setFeeProtocol(6, 6);
+            (,,,,, uint8 fp,) = IPoolLike(c.pool).slot0();
+            require(fp == (6 << 4) | 6, "setFeeProtocol nao ficou 6,6");
+        }
 
         // (6) trocas nos dois sentidos
         _swap(c, c.t0, c.t1, SWAP);
@@ -117,16 +127,26 @@ contract TesteFluxo is Script {
         _swap(c, c.t0, c.t1, SWAP);
         _swap(c, c.t1, c.t0, SWAP);
 
-        // (7) confere as taxas do protocolo e coleta para a carteira do dono
+        // (7) confere as taxas do protocolo e coleta para a carteira do dono (só se quem assina é o dono)
+        uint128 got0;
+        uint128 got1;
         (p0, p1) = IPoolLike(c.pool).protocolFees();
-        require(p0 > 0 && p1 > 0, "protocolFees deveria ser > 0 nos dois tokens");
-        (uint128 got0, uint128 got1) = IPoolLike(c.pool).collectProtocol(c.owner, type(uint128).max, type(uint128).max);
+        if (c.meIsOwner) {
+            require(p0 > 0 && p1 > 0, "protocolFees deveria ser > 0 nos dois tokens");
+            (got0, got1) = IPoolLike(c.pool).collectProtocol(c.owner, type(uint128).max, type(uint128).max);
+        } else {
+            require(p0 == 0 && p1 == 0, "Sem setFeeProtocol, protocolFees deveria continuar 0");
+        }
 
         vm.stopBroadcast();
 
         // (8) relatório
         console2.log("=== TESTE DE FLUXO - Polygon Amoy ===");
-        console2.log("Dono (carteira):", c.owner);
+        console2.log("Dono da Factory:", c.owner);
+        console2.log("Quem assinou:", c.me);
+        if (!c.meIsOwner) {
+            console2.log("ETAPAS DO DONO PULADAS (setFeeProtocol e collectProtocol): fazer com a Trezor na pool abaixo");
+        }
         console2.log("Token A (KTA):", address(a));
         console2.log("Token B (KTB):", address(b));
         console2.log("token0 da pool:", c.t0);
@@ -150,7 +170,7 @@ contract TesteFluxo is Script {
                 tokenIn: tin,
                 tokenOut: tout,
                 fee: FEE,
-                recipient: c.owner,
+                recipient: c.me,
                 deadline: block.timestamp + 1200,
                 amountIn: amountIn,
                 amountOutMinimum: 0,
