@@ -18,12 +18,12 @@ interface IERC20Meta {
 ///   1. confere que a rede é a Polygon (137) e que o WPOL fixo existe e é mesmo um WPOL (símbolo e 18 casas);
 ///   2. publica Factory, descriptor, NonfungiblePositionManager, SwapRouter e QuoterV2;
 ///   3. habilita a faixa de 0,01% (as outras três já vêm no Uniswap v3);
-///   4. passa a propriedade da Factory (setOwner) para OWNER_ADDRESS e confere tudo (_check);
+///   4. passa a propriedade da Factory (setOwner) para a Trezor do dono (OWNER, fixa no código) e confere tudo (_check);
 ///   5. só com --broadcast, grava deployments/polygon.json.
 /// Nunca cria token de teste: o token embrulhado é o WPOL oficial, fixo no código.
 ///
-/// Variável de ambiente (.env, fora do Git):
-///   OWNER_ADDRESS   carteira que será dona da Factory (OBRIGATÓRIA, diferente de zero e diferente do deployer)
+/// O dono da Factory NÃO vem do .env: está fixo no código (OWNER), como o WPOL, para um erro de digitação
+/// não perder a propriedade para sempre. Confira o endereço no visor da Trezor antes de enviar.
 ///
 /// Quem paga o deploy (Deployer) NÃO fica aqui: vai na linha de comando, por --account <nome> ou --ledger.
 /// Simulação (sem --broadcast) não envia nada nem grava arquivo.
@@ -33,14 +33,17 @@ contract DeployPolygon is Script, KambiodexDeployer {
     /// WPOL (Wrapped POL, ex-WMATIC) na Polygon PoS. Confira em polygonscan.com antes de qualquer envio real.
     address internal constant WPOL = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
+    /// Dono final da Factory: a Trezor do dono do projeto. Fixo no código (não lê variável de ambiente).
+    address internal constant OWNER = 0xcfaf6Cb6BF850B0088d675BEa655acf98017872E;
+
     /// Endereço de quem assina quando nenhuma conta foi informada (padrão do Foundry): nunca aceitar.
     address internal constant FOUNDRY_DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
     function run() external {
         require(block.chainid == POLYGON_CHAIN_ID, "So Polygon PoS (chainId 137)");
 
-        address owner = vm.envOr("OWNER_ADDRESS", address(0));
-        require(owner != address(0), "Defina OWNER_ADDRESS (carteira dona da Factory)");
+        address owner = OWNER;
+        require(owner != address(0), "Dono da Factory nao definido");
 
         string memory path = string.concat(vm.projectRoot(), "/../deployments/polygon.json");
         require(!vm.exists(path), "deployments/polygon.json ja existe: nao publicar duas vezes");
@@ -53,11 +56,11 @@ contract DeployPolygon is Script, KambiodexDeployer {
         if (!vm.isContext(VmSafe.ForgeContext.TestGroup)) {
             require(deployer != address(0) && deployer != FOUNDRY_DEFAULT_SENDER, "Informe --account ou --ledger");
         }
-        require(deployer != owner, "OWNER_ADDRESS nao pode ser o Deployer");
+        require(deployer != owner, "O dono (OWNER) nao pode ser o Deployer");
 
         console2.log("Rede: polygon - chainId:", block.chainid);
         console2.log("Deployer (quem assina):", deployer);
-        console2.log("Dono da Factory (OWNER_ADDRESS):", owner);
+        console2.log("Dono da Factory (OWNER, fixo no codigo):", owner);
 
         // deployAll: Factory, faixa 0,01%, descriptor, NPM, SwapRouter, QuoterV2, setOwner(owner) e _check.
         Deployed memory d = deployAll(WPOL, owner);

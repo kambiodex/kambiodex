@@ -175,26 +175,13 @@ contract PolygonMainnetForkTest is Test, KambiodexDeployer, TextUtils {
         string memory path = string.concat(vm.projectRoot(), "/../deployments/polygon.json");
         assertFalse(vm.exists(path), "polygon.json nao deveria existir antes");
 
-        // Sem OWNER_ADDRESS (zero): recusa.
-        vm.setEnv("OWNER_ADDRESS", "0x0000000000000000000000000000000000000000");
-        vm.expectRevert("Defina OWNER_ADDRESS (carteira dona da Factory)");
-        script.run();
-
-        // Rede errada: recusa, mesmo com dono válido.
-        vm.setEnv("OWNER_ADDRESS", vm.toString(OWNER));
+        // Rede errada: recusa.
         vm.chainId(80002);
         vm.expectRevert("So Polygon PoS (chainId 137)");
         script.run();
         vm.chainId(137);
 
-        // Dono = quem assina: recusa (no teste, quem assina é a conta padrão do Foundry).
-        vm.setEnv("OWNER_ADDRESS", vm.toString(DEFAULT_SENDER));
-        vm.expectRevert("OWNER_ADDRESS nao pode ser o Deployer");
-        script.run();
-        vm.stopBroadcast(); // o script já tinha aberto o envio quando parou (só acontece em teste)
-
         // Tudo certo: roda até o fim em simulação (sem --broadcast): não envia nada e não grava arquivo.
-        vm.setEnv("OWNER_ADDRESS", vm.toString(OWNER));
         script.run();
         assertFalse(vm.exists(path), "simulacao nao pode gravar polygon.json");
     }
