@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {UniswapV3Deployer} from "../script/helpers/UniswapV3Deployer.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
+import {IKambiodexPool} from "@kambiodex/core/interfaces/IKambiodexPool.sol";
+import {KambiodexDeployer} from "../script/helpers/KambiodexDeployer.sol";
 import {MockERC20} from "./helpers/MockERC20.sol";
 import {INPM, ISwapRouterLike, IQuoterV2Like} from "./helpers/IPeriphery.sol";
 
@@ -15,8 +15,8 @@ interface IWrapped {
 
 /// @notice Etapa 1 do CLAUDE.md, parte "periphery": posições em NFT (adicionar, remover 25/50/75/100%,
 ///         coletar taxas), SwapRouter, QuoterV2, moeda nativa (POL) e o desenho do NFT.
-///         A pilha é montada pelo MESMO código do script de deploy (UniswapV3Deployer).
-contract PeripheryTest is Test, UniswapV3Deployer {
+///         A pilha é montada pelo MESMO código do script de deploy (KambiodexDeployer).
+contract PeripheryTest is Test, KambiodexDeployer {
     uint160 constant PRICE_1 = 2 ** 96; // preço 1
     uint160 constant PRICE_2 = 112045541949572279837463876454; // preço 2 (token1 por token0), tick ~6931
     int24 constant MAX_TICK = 887272;
@@ -26,7 +26,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     INPM npm;
     ISwapRouterLike router;
     IQuoterV2Like quoter;
-    IUniswapV3Factory factory;
+    IKambiodexFactory factory;
     MockERC20 tA;
     MockERC20 tB;
     MockERC20 tC;
@@ -40,7 +40,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
         npm = INPM(d.positionManager);
         router = ISwapRouterLike(d.router);
         quoter = IQuoterV2Like(d.quoter);
-        factory = IUniswapV3Factory(d.factory);
+        factory = IKambiodexFactory(d.factory);
 
         tA = new MockERC20("Token A", "AAA", 18);
         tB = new MockERC20("Token B", "BBB", 18);
@@ -68,9 +68,9 @@ contract PeripheryTest is Test, UniswapV3Deployer {
         return a < b ? (a, b) : (b, a);
     }
 
-    function _createPool(address a, address b, uint24 fee, uint160 sqrtP) internal returns (IUniswapV3Pool) {
+    function _createPool(address a, address b, uint24 fee, uint160 sqrtP) internal returns (IKambiodexPool) {
         (address t0, address t1) = _sorted(a, b);
-        return IUniswapV3Pool(npm.createAndInitializePoolIfNecessary(t0, t1, fee, sqrtP));
+        return IKambiodexPool(npm.createAndInitializePoolIfNecessary(t0, t1, fee, sqrtP));
     }
 
     function _full(uint24 fee) internal view returns (int24 lo, int24 hi) {
@@ -101,7 +101,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
         (,,,,,,, liq,,, owed0, owed1) = npm.positions(id);
     }
 
-    function _slot(IUniswapV3Pool pool) internal view returns (uint160 p, int24 tick) {
+    function _slot(IKambiodexPool pool) internal view returns (uint160 p, int24 tick) {
         (p, tick,,,,,) = pool.slot0();
     }
 
@@ -117,7 +117,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
 
     function test_createPool_initialPriceAndIdempotent() public {
         (address t0, address t1) = _sorted(address(tA), address(tB));
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 500, PRICE_2);
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 500, PRICE_2);
         (uint160 p,) = _slot(pool);
         assertEq(p, PRICE_2); // preço inicial escolhido pelo criador
         assertEq(factory.getPool(t0, t1, 500), address(pool));
@@ -138,7 +138,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     function test_createPool_poolAlreadyCreatedButNotInitialized_isInitialized() public {
         (address t0, address t1) = _sorted(address(tA), address(tB));
         factory.createPool(t0, t1, 3000); // alguém criou sem preço
-        IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(t0, t1, 3000));
+        IKambiodexPool pool = IKambiodexPool(factory.getPool(t0, t1, 3000));
         npm.createAndInitializePoolIfNecessary(t0, t1, 3000, PRICE_2);
         (uint160 p,) = _slot(pool);
         assertEq(p, PRICE_2);
@@ -147,7 +147,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     // ---------------------------------------------------- criar posição (NFT)
 
     function test_mint_fullRange_createsNft() public {
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
         (int24 lo, int24 hi) = _full(3000);
         (address t0, address t1) = _sorted(address(tA), address(tB));
 
@@ -181,7 +181,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     }
 
     function test_mint_customRange_atPriceTwo() public {
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 3000, PRICE_2);
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 3000, PRICE_2);
         (, int24 tick) = _slot(pool);
         assertEq(tick, 6931);
 
@@ -197,7 +197,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     }
 
     function test_mint_singleSided_whenRangeIsOutsidePrice() public {
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 3000, PRICE_2); // tick 6931
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 3000, PRICE_2); // tick 6931
 
         // Faixa acima do preço: só token0.
         (, uint128 liqUp, uint256 u0, uint256 u1) =
@@ -318,7 +318,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     // ------------------------------------- taxas dos provedores via NFT (collect)
 
     function test_collectFees_throughNft_afterRouterSwap() public {
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
         (int24 lo, int24 hi) = _full(3000);
         (address t0, address t1) = _sorted(address(tA), address(tB));
         (uint256 id,,,) = _mintAs(user, _params(address(tA), address(tB), 3000, lo, hi, 1e21, user));
@@ -336,7 +336,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
     }
 
     function test_collectFees_withProtocolFee_oneSixthToExchange() public {
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
         (int24 lo, int24 hi) = _full(3000);
         (address t0, address t1) = _sorted(address(tA), address(tB));
         (uint256 id,,,) = _mintAs(user, _params(address(tA), address(tB), 3000, lo, hi, 1e21, user));
@@ -499,7 +499,7 @@ contract PeripheryTest is Test, UniswapV3Deployer {
 
     function test_router_swapThatCrossesOutOfRange_isPartialOnExactInput() public {
         // Só liquidez estreita (~±6%) e limite de preço de 1%: o pedido grande é atendido só até o limite.
-        IUniswapV3Pool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
+        IKambiodexPool pool = _createPool(address(tA), address(tB), 3000, PRICE_1);
         _mintAs(user, _params(address(tA), address(tB), 3000, -600, 600, 1e21, user));
         (address t0, address t1) = _sorted(address(tA), address(tB));
 

@@ -2,12 +2,12 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
-import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/INonfungibleTokenPositionDescriptor.sol';
-import '@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol';
+import '@kambiodex/core/interfaces/IKambiodexPool.sol';
+import '@kambiodex/core/libraries/FullMath.sol';
+import '@kambiodex/core/libraries/TickMath.sol';
+import '@kambiodex/periphery/interfaces/INonfungiblePositionManager.sol';
+import '@kambiodex/periphery/interfaces/INonfungibleTokenPositionDescriptor.sol';
+import '@kambiodex/periphery/libraries/PoolAddress.sol';
 import 'base64-sol/base64.sol';
 
 /// @title KambiodexPositionDescriptor
@@ -285,10 +285,10 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
     // ------------------------------------------------------------------ leitura segura
 
     function _poolState(address pool) private view returns (int24 tick, int24 spacing) {
-        try IUniswapV3Pool(pool).slot0() returns (uint160, int24 t, uint16, uint16, uint16, uint8, bool) {
+        try IKambiodexPool(pool).slot0() returns (uint160, int24 t, uint16, uint16, uint16, uint8, bool) {
             tick = t;
         } catch {}
-        try IUniswapV3Pool(pool).tickSpacing() returns (int24 s) {
+        try IKambiodexPool(pool).tickSpacing() returns (int24 s) {
             spacing = s;
         } catch {}
     }

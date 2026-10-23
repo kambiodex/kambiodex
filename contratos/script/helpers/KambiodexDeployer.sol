@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {CommonBase} from "forge-std/Base.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
 
 interface IPeripheryImmutableState {
     function factory() external view returns (address);
@@ -12,7 +12,7 @@ interface IPeripheryImmutableState {
 /// @notice Monta, em ordem, todos os contratos da KAMBIODEX (Uniswap v3 original, sem proxy).
 /// @dev Os contratos do Uniswap são Solidity 0.7.6 e este arquivo é 0.8, por isso são criados a
 ///      partir do código já compilado (pasta out/). Usado pelo script de deploy E pelos testes.
-abstract contract UniswapV3Deployer is CommonBase {
+abstract contract KambiodexDeployer is CommonBase {
     struct Deployed {
         address factory;
         address descriptor;
@@ -22,8 +22,8 @@ abstract contract UniswapV3Deployer is CommonBase {
         address wrappedNative;
     }
 
-    /// Hash do código da pool que o periphery espera (PoolAddress.POOL_INIT_CODE_HASH, igual ao oficial).
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+    /// Hash do código da pool que o periphery espera (PoolAddress.POOL_INIT_CODE_HASH; difere do oficial por causa da renomeação dos callbacks).
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0xefa1523a9c693954cc7417070043ba156e89adf78e52919814d859ef413bac17;
 
     /// Faixas de taxa (CLAUDE.md): 0,01% 0,05% 0,30% 1%. A de 0,01% não vem habilitada no original.
     uint24 internal constant FEE_100 = 100;
@@ -36,8 +36,8 @@ abstract contract UniswapV3Deployer is CommonBase {
         d.wrappedNative = wrappedNative;
 
         // 1) Núcleo
-        d.factory = _create("UniswapV3Factory.sol:UniswapV3Factory", "");
-        IUniswapV3Factory(d.factory).enableFeeAmount(FEE_100, SPACING_100); // 0,01% (só o dono pode)
+        d.factory = _create("KambiodexFactory.sol:KambiodexFactory", "");
+        IKambiodexFactory(d.factory).enableFeeAmount(FEE_100, SPACING_100); // 0,01% (só o dono pode)
 
         // 2) Periphery (descriptor próprio da KAMBIODEX, sem proxy e sem biblioteca externa)
         d.descriptor = _create(
@@ -51,7 +51,7 @@ abstract contract UniswapV3Deployer is CommonBase {
         d.quoter = _create("QuoterV2.sol:QuoterV2", abi.encode(d.factory, wrappedNative));
 
         // 3) Por último, passa a propriedade da Factory (depois de habilitar a faixa de 0,01%)
-        if (finalOwner != address(0)) IUniswapV3Factory(d.factory).setOwner(finalOwner);
+        if (finalOwner != address(0)) IKambiodexFactory(d.factory).setOwner(finalOwner);
 
         _check(d, finalOwner);
     }
@@ -59,9 +59,9 @@ abstract contract UniswapV3Deployer is CommonBase {
     /// Confere o resultado; se algo estiver errado, o script inteiro falha.
     function _check(Deployed memory d, address finalOwner) internal view {
         // Se as opções de compilação mudarem, o periphery calcularia endereços de pool errados.
-        require(keccak256(vm.getCode("UniswapV3Pool.sol:UniswapV3Pool")) == POOL_INIT_CODE_HASH, "hash da pool mudou");
+        require(keccak256(vm.getCode("KambiodexPool.sol:KambiodexPool")) == POOL_INIT_CODE_HASH, "hash da pool mudou");
 
-        IUniswapV3Factory f = IUniswapV3Factory(d.factory);
+        IKambiodexFactory f = IKambiodexFactory(d.factory);
         require(f.feeAmountTickSpacing(100) == 1, "faixa 0,01% desligada");
         require(f.feeAmountTickSpacing(500) == 10, "faixa 0,05% errada");
         require(f.feeAmountTickSpacing(3000) == 60, "faixa 0,30% errada");

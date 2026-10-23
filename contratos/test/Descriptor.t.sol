@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {UniswapV3Deployer} from "../script/helpers/UniswapV3Deployer.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
+import {KambiodexDeployer} from "../script/helpers/KambiodexDeployer.sol";
 import {MockERC20} from "./helpers/MockERC20.sol";
 import {OddToken} from "./helpers/OddToken.sol";
 import {TextUtils} from "./helpers/TextUtils.sol";
@@ -16,13 +16,13 @@ interface IDescriptor {
 }
 
 /// @notice Testa o descriptor próprio da KAMBIODEX (nome, descrição e SVG do NFT da posição).
-contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
+contract DescriptorTest is Test, KambiodexDeployer, TextUtils {
     uint160 constant PRICE_1 = 2 ** 96;
     int24 constant MAX_TICK = 887272;
 
     Deployed d;
     INPM npm;
-    IUniswapV3Factory factory;
+    IKambiodexFactory factory;
     address wpol;
     address user;
     MockERC20 tA;
@@ -32,7 +32,7 @@ contract DescriptorTest is Test, UniswapV3Deployer, TextUtils {
         wpol = _create("WrappedNativeTestnet.sol:WrappedNativeTestnet", abi.encode("Wrapped POL", "WPOL"));
         d = deployAll(wpol, address(0));
         npm = INPM(d.positionManager);
-        factory = IUniswapV3Factory(d.factory);
+        factory = IKambiodexFactory(d.factory);
         tA = new MockERC20("Token A", "AAA", 18);
         tB = new MockERC20("Token B", "BBB", 18);
         user = makeAddr("user");

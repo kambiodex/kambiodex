@@ -8,7 +8,7 @@
 **Versión del 03/10/2026.** Al conectar tu billetera a KAMBIODEX, declaras haber leído y aceptado estos Términos.
 
 ### 1. El servicio
-KAMBIODEX es una **interfaz** para contratos inteligentes públicos basados en Uniswap v3 en Polygon. Los intercambios y la liquidez ocurren directamente en esos contratos, desde tu billetera. **KAMBIODEX no custodia tus activos, no tiene acceso a tus claves y no puede revertir transacciones.**
+KAMBIODEX es una **interfaz** para contratos inteligentes públicos basados en Uniswap v3 en Polygon. Los intercambios y la liquidez ocurren directamente en esos contratos, desde tu billetera. **KAMBIODEX no custodia tus activos, no tiene acceso a tus claves y no puede revertir transacciones.** Los contratos de KAMBIODEX derivan del código abierto de Uniswap v3 (© Uniswap Labs, licenciado bajo GPL-2.0-or-later, con los avisos originales conservados; los cambios están listados en los archivos NOTICE y CHANGES del proyecto). KAMBIODEX no está afiliada, respaldada ni patrocinada por Uniswap Labs; “Uniswap” es marca de su titular.
 
 ### 2. Quién puede usarlo
 

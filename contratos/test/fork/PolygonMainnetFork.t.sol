@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {UniswapV3Deployer} from "../../script/helpers/UniswapV3Deployer.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
+import {IKambiodexPool} from "@kambiodex/core/interfaces/IKambiodexPool.sol";
+import {KambiodexDeployer} from "../../script/helpers/KambiodexDeployer.sol";
 import {DeployPolygon} from "../../script/DeployPolygon.s.sol";
 import {MockERC20} from "../helpers/MockERC20.sol";
 import {TextUtils} from "../helpers/TextUtils.sol";
@@ -19,7 +19,7 @@ interface IERC20Info {
 /// @notice Simulação 100% local sobre um FORK da Polygon PoS (rede principal, chainId 137).
 ///         O Foundry copia o estado da rede para a memória; nada é enviado à rede real
 ///         (sem chave, sem keystore, sem --broadcast, sem gás). Usa o WPOL REAL da Polygon.
-contract PolygonMainnetForkTest is Test, UniswapV3Deployer, TextUtils {
+contract PolygonMainnetForkTest is Test, KambiodexDeployer, TextUtils {
     string constant RPC = "https://polygon-bor-rpc.publicnode.com";
 
     address constant WPOL = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
@@ -32,7 +32,7 @@ contract PolygonMainnetForkTest is Test, UniswapV3Deployer, TextUtils {
     INPM npm;
     ISwapRouterLike router;
     IQuoterV2Like quoter;
-    IUniswapV3Factory factory;
+    IKambiodexFactory factory;
     MockERC20 usdc; // token de teste (6 casas, como o USDC), criado só dentro do fork
     address lp = makeAddr("lp");
     address trader = makeAddr("trader");
@@ -45,7 +45,7 @@ contract PolygonMainnetForkTest is Test, UniswapV3Deployer, TextUtils {
         npm = INPM(d.positionManager);
         router = ISwapRouterLike(d.router);
         quoter = IQuoterV2Like(d.quoter);
-        factory = IUniswapV3Factory(d.factory);
+        factory = IKambiodexFactory(d.factory);
 
         usdc = new MockERC20("USD Coin (teste)", "USDC", 6);
         address[2] memory people = [lp, trader];
@@ -98,7 +98,7 @@ contract PolygonMainnetForkTest is Test, UniswapV3Deployer, TextUtils {
     function test_protocolFee_onlyOwner_setFeeProtocol() public {
         _poolWithNativeLiquidity();
         (address t0, address t1) = WPOL < address(usdc) ? (WPOL, address(usdc)) : (address(usdc), WPOL);
-        IUniswapV3Pool pool = IUniswapV3Pool(factory.getPool(t0, t1, 3000));
+        IKambiodexPool pool = IKambiodexPool(factory.getPool(t0, t1, 3000));
         vm.expectRevert();
         pool.setFeeProtocol(6, 6);
         vm.prank(OWNER);

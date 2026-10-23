@@ -40,7 +40,7 @@ interface IErc20Like {
 contract DeployDescriptor is Script {
     uint256 internal constant AMOY_CHAIN_ID = 80002;
     bytes32 internal constant NATIVE_LABEL = bytes32("POL");
-    bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0xefa1523a9c693954cc7417070043ba156e89adf78e52919814d859ef413bac17;
 
     string internal constant IN_FILE = "/../deployments/amoy.json";
     string internal constant OUT_FILE = "/../deployments/amoy-descriptor-v2.json";
@@ -57,7 +57,7 @@ contract DeployDescriptor is Script {
         string memory j = vm.readFile(inPath);
         require(vm.parseJsonUint(j, ".chainId") == AMOY_CHAIN_ID, "amoy.json nao e da Amoy");
         require(vm.parseJsonBytes32(j, ".poolInitCodeHash") == POOL_INIT_CODE_HASH, "hash da pool diferente");
-        address factory = vm.parseJsonAddress(j, ".UniswapV3Factory");
+        address factory = vm.parseJsonAddress(j, ".KambiodexFactory");
         address wrapped = vm.parseJsonAddress(j, ".WrappedNative");
 
         _checkExisting(factory, wrapped);
@@ -83,7 +83,7 @@ contract DeployDescriptor is Script {
         if (vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
             string memory k = "kambiodex_descriptor_deployment";
             vm.serializeUint(k, "chainId", block.chainid);
-            vm.serializeAddress(k, "UniswapV3Factory", factory);
+            vm.serializeAddress(k, "KambiodexFactory", factory);
             vm.serializeAddress(k, "WrappedNative", wrapped);
             vm.serializeAddress(k, "KambiodexPositionDescriptor", descriptor);
             vm.serializeString(k, "descriptorSourceCommit", SOURCE_COMMIT);

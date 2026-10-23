@@ -8,7 +8,7 @@
 **Version of 2026-10-03.** By connecting your wallet to KAMBIODEX, you confirm you have read and accept these Terms.
 
 ### 1. The service
-KAMBIODEX is an **interface** to public smart contracts based on Uniswap v3 on Polygon. Swaps and liquidity happen directly in those contracts, from your wallet. **KAMBIODEX does not hold your assets, has no access to your keys and cannot reverse transactions.**
+KAMBIODEX is an **interface** to public smart contracts based on Uniswap v3 on Polygon. Swaps and liquidity happen directly in those contracts, from your wallet. **KAMBIODEX does not hold your assets, has no access to your keys and cannot reverse transactions.** KAMBIODEX contracts are derived from the open-source code of Uniswap v3 (© Uniswap Labs, licensed under GPL-2.0-or-later, with the original notices kept; the changes are listed in the project’s NOTICE and CHANGES files). KAMBIODEX is not affiliated with, endorsed by or sponsored by Uniswap Labs; “Uniswap” is a trademark of its owner.
 
 ### 2. Eligibility
 

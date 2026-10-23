@@ -1,26 +1,27 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Modified by KAMBIODEX (2026-10-06) from Uniswap/v3-periphery v1.1.1, file contracts/NonfungiblePositionManager.sol.
-// Changes: (1) relative imports rewritten to @uniswap/v3-periphery/...; (2) NFT name/symbol changed.
+// Changes: (1) relative imports rewritten to @kambiodex/core/... and @kambiodex/periphery/...; (2) NFT name/symbol changed;
+//          (3) identifiers renamed IUniswapV3Pool -> IKambiodexPool (no logic change). See ../../NOTICE.md and ../../CHANGES.md.
 // Original name/symbol: 'Uniswap V3 Positions NFT-V1' / 'UNI-V3-POS'.
 // Licence unchanged (GPL-2.0-or-later). Full diff: docs/ALTERACOES-PERIPHERY.md
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/libraries/FixedPoint128.sol';
-import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
+import '@kambiodex/core/interfaces/IKambiodexPool.sol';
+import '@kambiodex/core/libraries/FixedPoint128.sol';
+import '@kambiodex/core/libraries/FullMath.sol';
 
-import '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/INonfungibleTokenPositionDescriptor.sol';
-import '@uniswap/v3-periphery/contracts/libraries/PositionKey.sol';
-import '@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol';
-import '@uniswap/v3-periphery/contracts/base/LiquidityManagement.sol';
-import '@uniswap/v3-periphery/contracts/base/PeripheryImmutableState.sol';
-import '@uniswap/v3-periphery/contracts/base/Multicall.sol';
-import '@uniswap/v3-periphery/contracts/base/ERC721Permit.sol';
-import '@uniswap/v3-periphery/contracts/base/PeripheryValidation.sol';
-import '@uniswap/v3-periphery/contracts/base/SelfPermit.sol';
-import '@uniswap/v3-periphery/contracts/base/PoolInitializer.sol';
+import '@kambiodex/periphery/interfaces/INonfungiblePositionManager.sol';
+import '@kambiodex/periphery/interfaces/INonfungibleTokenPositionDescriptor.sol';
+import '@kambiodex/periphery/libraries/PositionKey.sol';
+import '@kambiodex/periphery/libraries/PoolAddress.sol';
+import '@kambiodex/periphery/base/LiquidityManagement.sol';
+import '@kambiodex/periphery/base/PeripheryImmutableState.sol';
+import '@kambiodex/periphery/base/Multicall.sol';
+import '@kambiodex/periphery/base/ERC721Permit.sol';
+import '@kambiodex/periphery/base/PeripheryValidation.sol';
+import '@kambiodex/periphery/base/SelfPermit.sol';
+import '@kambiodex/periphery/base/PoolInitializer.sol';
 
 /// @title NFT positions
 /// @notice Wraps Uniswap V3 positions in the ERC721 non-fungible token interface
@@ -141,7 +142,7 @@ contract NonfungiblePositionManager is
             uint256 amount1
         )
     {
-        IUniswapV3Pool pool;
+        IKambiodexPool pool;
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: params.token0,
@@ -214,7 +215,7 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
-        IUniswapV3Pool pool;
+        IKambiodexPool pool;
         (liquidity, amount0, amount1, pool) = addLiquidity(
             AddLiquidityParams({
                 token0: poolKey.token0,
@@ -273,7 +274,7 @@ contract NonfungiblePositionManager is
         require(positionLiquidity >= params.liquidity);
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        IKambiodexPool pool = IKambiodexPool(PoolAddress.computeAddress(factory, poolKey));
         (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
@@ -325,7 +326,7 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        IKambiodexPool pool = IKambiodexPool(PoolAddress.computeAddress(factory, poolKey));
 
         (uint128 tokensOwed0, uint128 tokensOwed1) = (position.tokensOwed0, position.tokensOwed1);
 

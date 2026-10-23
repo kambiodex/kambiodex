@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {VmSafe} from "forge-std/Vm.sol";
-import {UniswapV3Deployer} from "./helpers/UniswapV3Deployer.sol";
+import {KambiodexDeployer} from "./helpers/KambiodexDeployer.sol";
 
 /// @notice Implanta a KAMBIODEX (Uniswap v3 original) numa REDE DE TESTE.
 ///
@@ -18,7 +18,7 @@ import {UniswapV3Deployer} from "./helpers/UniswapV3Deployer.sol";
 ///
 /// A chave de quem paga o deploy NÃO fica neste arquivo: passa-se na linha de comando por
 /// --account <nome> (carteira criptografada do Foundry) ou --ledger (carteira física).
-contract Deploy is Script, UniswapV3Deployer {
+contract Deploy is Script, KambiodexDeployer {
     /// Só testnets. Qualquer outra rede faz o script parar.
     function networkName(uint256 chainId) public pure returns (string memory) {
         if (chainId == 80002) return "amoy";
@@ -52,7 +52,7 @@ contract Deploy is Script, UniswapV3Deployer {
 
         vm.stopBroadcast();
 
-        console2.log("UniswapV3Factory:", d.factory);
+        console2.log("KambiodexFactory:", d.factory);
         console2.log("NonfungibleTokenPositionDescriptor:", d.descriptor);
         console2.log("NonfungiblePositionManager:", d.positionManager);
         console2.log("SwapRouter:", d.router);
@@ -70,7 +70,7 @@ contract Deploy is Script, UniswapV3Deployer {
     function addressesJson(Deployed memory d, address owner) public returns (string memory) {
         string memory k = "kambiodex_deployment";
         vm.serializeUint(k, "chainId", block.chainid);
-        vm.serializeAddress(k, "UniswapV3Factory", d.factory);
+        vm.serializeAddress(k, "KambiodexFactory", d.factory);
         vm.serializeAddress(k, "KambiodexPositionDescriptor", d.descriptor);
         vm.serializeAddress(k, "NonfungiblePositionManager", d.positionManager);
         vm.serializeAddress(k, "SwapRouter", d.router);

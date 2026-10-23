@@ -1,5 +1,11 @@
 # Alterações no periphery do Uniswap v3
 
+> **Atualização (branch `rename-kambiodex`, out/2026):** o código do Uniswap v3 agora está **copiado** em `contratos/src/core` e
+> `contratos/src/periphery` (os submódulos `v3-core`/`v3-periphery` foram removidos) e os identificadores foram renomeados
+> (`UniswapV3Pool` -> `KambiodexPool`, callbacks `kambiodex*Callback`, imports `@kambiodex/...`), sem mudar a lógica.
+> O `POOL_INIT_CODE_HASH` **deixou de ser igual ao oficial**: agora é `0xefa1523a…ac17`. Lista vigente: `CHANGES.md` e `NOTICE.md`.
+> O texto abaixo é o histórico da decisão de 06/10/2026; onde disser "inalterado" ou "hash idêntico", vale a nota acima.
+
 Base: `Uniswap/v3-periphery` tag **v1.1.1** (submódulo `contratos/lib/v3-periphery`, **não alterado**).
 Decisão do dono em 06/10/2026: alterar o mínimo, só dois pontos. **O v3-core não foi alterado.**
 
@@ -24,7 +30,7 @@ Nenhuma lógica de pool, preço, taxa ou dinheiro foi tocada. A cópia alterada 
 (o `deploy` e os testes usam essa cópia; o original continua em `lib/` só como referência/dependência).
 
 ## O que NÃO mudou (de propósito)
-- O v3-core inteiro. `POOL_INIT_CODE_HASH` idêntico ao oficial.
+- A lógica do v3-core inteiro (depois só houve renomeação de identificadores; o `POOL_INIT_CODE_HASH` passou a ser diferente do oficial, ver nota no topo).
 - O rótulo `POL` é específico da Polygon. Na fase 2 (BNB Chain) o rótulo deve ser `BNB`: o `KambiodexPositionDescriptor`
   recebe o rótulo no construtor (`nativeLabel`), então basta publicar outro com `BNB`.
 
@@ -157,7 +163,7 @@ e30d84739775512a999246570ce24b17bb5b00751c4258b22b3bce3b046aac8e  src/periphery/
 - A biblioteca `NFTDescriptor` (UNLICENSED) **não é mais publicada**. A interface `IERC20Metadata` UNLICENSED foi trocada por
   `contratos/src/interfaces/IERC20Metadata.sol` (MIT, escrita do zero).
 - Os contratos já publicados na Amoy continuam com o descriptor antigo (não foram tocados).
-- `NonfungiblePositionManager` (mudança só de nome/símbolo) e todo o v3-core: **inalterados**. `POOL_INIT_CODE_HASH` idêntico.
+- `NonfungiblePositionManager` (mudança só de nome/símbolo) e a lógica do v3-core: **inalterados** (histórico; a renomeação posterior mudou o `POOL_INIT_CODE_HASH`, ver nota no topo).
 
 ### Nota (22/10/2026): metadado do NFT
 

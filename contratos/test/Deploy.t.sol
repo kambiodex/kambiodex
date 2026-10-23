@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {UniswapV3Deployer} from "../script/helpers/UniswapV3Deployer.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
+import {KambiodexDeployer} from "../script/helpers/KambiodexDeployer.sol";
 import {Deploy} from "../script/Deploy.s.sol";
 import {INPM} from "./helpers/IPeriphery.sol";
 
@@ -12,7 +12,7 @@ interface IDescriptorWETH {
 }
 
 /// @notice Testa o script de deploy (tudo em memória, nenhuma rede real é tocada).
-contract DeployTest is Test, UniswapV3Deployer {
+contract DeployTest is Test, KambiodexDeployer {
     address owner = makeAddr("owner");
     address wrapped;
 
@@ -23,7 +23,7 @@ contract DeployTest is Test, UniswapV3Deployer {
     function test_deployAll_wiresEverything() public {
         Deployed memory d = deployAll(wrapped, owner);
 
-        IUniswapV3Factory f = IUniswapV3Factory(d.factory);
+        IKambiodexFactory f = IKambiodexFactory(d.factory);
         assertEq(f.owner(), owner); // dono passou para a carteira Owner
         assertEq(f.feeAmountTickSpacing(100), 1); // 0,01%
         assertEq(f.feeAmountTickSpacing(500), 10); // 0,05%
@@ -40,7 +40,7 @@ contract DeployTest is Test, UniswapV3Deployer {
 
     function test_deployAll_keepsOwnerWhenNoFinalOwner() public {
         Deployed memory d = deployAll(wrapped, address(0));
-        assertEq(IUniswapV3Factory(d.factory).owner(), address(this));
+        assertEq(IKambiodexFactory(d.factory).owner(), address(this));
     }
 
     function test_deployAll_rejectsEmptyWrappedToken() public {
@@ -103,7 +103,7 @@ contract DeployTest is Test, UniswapV3Deployer {
         string memory json = script.addressesJson(d, owner);
 
         assertEq(vm.parseJsonUint(json, ".chainId"), 80002);
-        assertEq(vm.parseJsonAddress(json, ".UniswapV3Factory"), d.factory);
+        assertEq(vm.parseJsonAddress(json, ".KambiodexFactory"), d.factory);
         assertEq(vm.parseJsonAddress(json, ".NonfungiblePositionManager"), d.positionManager);
         assertEq(vm.parseJsonAddress(json, ".SwapRouter"), d.router);
         assertEq(vm.parseJsonAddress(json, ".QuoterV2"), d.quoter);

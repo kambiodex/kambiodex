@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
+import {IKambiodexPool} from "@kambiodex/core/interfaces/IKambiodexPool.sol";
 import {MockERC20} from "../helpers/MockERC20.sol";
 import {INPM, ISwapRouterLike, IQuoterV2Like} from "../helpers/IPeriphery.sol";
 
@@ -26,14 +26,14 @@ contract KambiodexAmoyForkTest is Test {
     int24 constant FULL_TICK = 887220; // maior múltiplo de 60 dentro do limite (faixa completa)
     uint128 constant U128_MAX = type(uint128).max;
 
-    IUniswapV3Factory factory = IUniswapV3Factory(FACTORY);
+    IKambiodexFactory factory = IKambiodexFactory(FACTORY);
     INPM npm = INPM(NPM);
     ISwapRouterLike router = ISwapRouterLike(ROUTER);
     IQuoterV2Like quoter = IQuoterV2Like(QUOTER);
 
     MockERC20 t0;
     MockERC20 t1;
-    IUniswapV3Pool pool;
+    IKambiodexPool pool;
     address lp = makeAddr("lp");
     address trader = makeAddr("trader");
     address treasury = makeAddr("treasury");
@@ -61,7 +61,7 @@ contract KambiodexAmoyForkTest is Test {
         }
 
         // cria + inicializa a pool (fee 3000, preço 1:1) e adiciona liquidez em faixa completa
-        pool = IUniswapV3Pool(npm.createAndInitializePoolIfNecessary(address(t0), address(t1), FEE, PRICE_1));
+        pool = IKambiodexPool(npm.createAndInitializePoolIfNecessary(address(t0), address(t1), FEE, PRICE_1));
         vm.prank(lp);
         (tokenId,,,) = npm.mint(
             INPM.MintParams({

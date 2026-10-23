@@ -8,7 +8,7 @@
 **Versão de 03/10/2026.** Ao conectar sua carteira à KAMBIODEX, você declara que leu e aceita estes Termos.
 
 ### 1. O que é o serviço
-A KAMBIODEX é uma **interface** para contratos inteligentes públicos, baseados no Uniswap v3, na rede Polygon. As trocas e a liquidez acontecem diretamente nesses contratos, a partir da sua carteira. **A KAMBIODEX não guarda seus ativos, não tem acesso às suas chaves e não pode desfazer transações.**
+A KAMBIODEX é uma **interface** para contratos inteligentes públicos, baseados no Uniswap v3, na rede Polygon. As trocas e a liquidez acontecem diretamente nesses contratos, a partir da sua carteira. **A KAMBIODEX não guarda seus ativos, não tem acesso às suas chaves e não pode desfazer transações.** Os contratos da KAMBIODEX são derivados do código aberto do Uniswap v3 (© Uniswap Labs, licenciado sob GPL-2.0-or-later, com os avisos originais mantidos; as alterações estão listadas nos arquivos NOTICE e CHANGES do projeto). A KAMBIODEX não é afiliada, endossada nem patrocinada pela Uniswap Labs; “Uniswap” é marca de seu titular.
 
 ### 2. Quem pode usar
 

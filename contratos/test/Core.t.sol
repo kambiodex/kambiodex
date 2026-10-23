@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IKambiodexFactory} from "@kambiodex/core/interfaces/IKambiodexFactory.sol";
+import {IKambiodexPool} from "@kambiodex/core/interfaces/IKambiodexPool.sol";
 import {MockERC20} from "./helpers/MockERC20.sol";
 import {PoolActor} from "./helpers/PoolActor.sol";
 
@@ -17,7 +17,7 @@ contract CoreTest is Test {
     int24 constant MAX_TICK = 887272;
     uint128 constant L = 1e21;
 
-    IUniswapV3Factory factory;
+    IKambiodexFactory factory;
     MockERC20 token0;
     MockERC20 token1;
     PoolActor lp;
@@ -25,7 +25,7 @@ contract CoreTest is Test {
 
     function setUp() public {
         // O dono da Factory é quem a cria: este contrato de teste.
-        factory = IUniswapV3Factory(deployCode("UniswapV3Factory.sol:UniswapV3Factory"));
+        factory = IKambiodexFactory(deployCode("KambiodexFactory.sol:KambiodexFactory"));
 
         MockERC20 a = new MockERC20("Token A", "AAA", 18);
         MockERC20 b = new MockERC20("Token B", "BBB", 18);
@@ -41,8 +41,8 @@ contract CoreTest is Test {
 
     // ---------------------------------------------------------------- helpers
 
-    function _newPool(uint24 fee) internal returns (IUniswapV3Pool pool) {
-        pool = IUniswapV3Pool(factory.createPool(address(token0), address(token1), fee));
+    function _newPool(uint24 fee) internal returns (IKambiodexPool pool) {
+        pool = IKambiodexPool(factory.createPool(address(token0), address(token1), fee));
         pool.initialize(PRICE_1);
     }
 
@@ -56,11 +56,11 @@ contract CoreTest is Test {
         lower = -upper;
     }
 
-    function _tick(IUniswapV3Pool pool) internal view returns (int24 tick) {
+    function _tick(IKambiodexPool pool) internal view returns (int24 tick) {
         (, tick,,,,,) = pool.slot0();
     }
 
-    function _sqrtPrice(IUniswapV3Pool pool) internal view returns (uint160 p) {
+    function _sqrtPrice(IKambiodexPool pool) internal view returns (uint160 p) {
         (p,,,,,,) = pool.slot0();
     }
 
@@ -98,7 +98,7 @@ contract CoreTest is Test {
         int24[4] memory spacings = [int24(1), 10, 60, 200];
 
         for (uint256 i = 0; i < 4; i++) {
-            IUniswapV3Pool pool = _newPool(fees[i]);
+            IKambiodexPool pool = _newPool(fees[i]);
             assertEq(factory.getPool(address(token0), address(token1), fees[i]), address(pool));
             // a ordem dos tokens na busca não importa
             assertEq(factory.getPool(address(token1), address(token0), fees[i]), address(pool));
@@ -125,7 +125,7 @@ contract CoreTest is Test {
     }
 
     function test_initialize_onlyOnce() public {
-        IUniswapV3Pool pool = IUniswapV3Pool(factory.createPool(address(token0), address(token1), 3000));
+        IKambiodexPool pool = IKambiodexPool(factory.createPool(address(token0), address(token1), 3000));
         pool.initialize(PRICE_1);
         vm.expectRevert();
         pool.initialize(PRICE_1);
@@ -134,7 +134,7 @@ contract CoreTest is Test {
     // ------------------------------------------------------ posições (liquidez)
 
     function test_mint_fullRange() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
 
         (uint256 a0, uint256 a1) = lp.mint(pool, lower, upper, L);
@@ -148,11 +148,11 @@ contract CoreTest is Test {
     }
 
     function test_mint_narrowRange_isMoreCapitalEfficient() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         (uint256 full0, uint256 full1) = lp.mint(pool, lower, upper, L);
 
-        IUniswapV3Pool pool2 = IUniswapV3Pool(factory.createPool(address(token0), address(token1), 500));
+        IKambiodexPool pool2 = IKambiodexPool(factory.createPool(address(token0), address(token1), 500));
         pool2.initialize(PRICE_1);
         (uint256 n0, uint256 n1) = lp.mint(pool2, -600, 600, L); // ~ ±6%
 
@@ -163,7 +163,7 @@ contract CoreTest is Test {
     }
 
     function test_mint_outsideCurrentPrice_needsOnlyOneToken() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         // Faixa acima do preço atual: só token0. Faixa abaixo: só token1.
         (uint256 u0, uint256 u1) = lp.mint(pool, 1200, 1800, L);
         assertGt(u0, 0);
@@ -175,7 +175,7 @@ contract CoreTest is Test {
     }
 
     function test_mint_revertsOnBadTicks() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         vm.expectRevert();
         lp.mint(pool, -601, 600, L); // não é múltiplo do espaçamento (60)
         vm.expectRevert();
@@ -187,7 +187,7 @@ contract CoreTest is Test {
     // ------------------------------------------------------------------ trocas
 
     function test_swap_insideRange() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         lp.mint(pool, -600, 600, L);
 
         uint256 before1 = token1.balanceOf(address(trader));
@@ -203,7 +203,7 @@ contract CoreTest is Test {
     }
 
     function test_swap_exactOutput() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         lp.mint(pool, -600, 600, L);
 
         (int256 a0, int256 a1) = trader.swap(pool, true, -1e18, MIN_LIMIT); // quero receber 1e18 de token1
@@ -212,7 +212,7 @@ contract CoreTest is Test {
     }
 
     function test_swap_beyondRange_isPartiallyFilled() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (uint256 u0,) = lp.mint(pool, -600, 600, L); // posição estreita (~±6%)
         assertGt(u0, 0);
 
@@ -232,7 +232,7 @@ contract CoreTest is Test {
     }
 
     function test_swap_priceLimitIsRespected() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         lp.mint(pool, -600, 600, L);
         uint160 limit = PRICE_1 - PRICE_1 / 1000; // para 0,1% abaixo
         (int256 a0,) = trader.swap(pool, true, 1e20, limit);
@@ -244,7 +244,7 @@ contract CoreTest is Test {
     }
 
     function test_swap_onlyCallbackPayer_failsIfNotPaid() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         lp.mint(pool, -600, 600, L);
         PoolActor broke = new PoolActor(); // sem saldo
         vm.expectRevert();
@@ -258,7 +258,7 @@ contract CoreTest is Test {
         uint24[4] memory fees = [uint24(100), 500, 3000, 10000];
 
         for (uint256 i = 0; i < 4; i++) {
-            IUniswapV3Pool pool = _newPool(fees[i]);
+            IKambiodexPool pool = _newPool(fees[i]);
             (int24 lower, int24 upper) = _fullRange(fees[i]);
             lp.mint(pool, lower, upper, L);
 
@@ -281,7 +281,7 @@ contract CoreTest is Test {
     }
 
     function test_collect_outOfRangePositionEarnsNoFees() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         lp.mint(pool, lower, upper, L); // dentro da faixa
         PoolActor lpOut = new PoolActor();
@@ -301,7 +301,7 @@ contract CoreTest is Test {
     }
 
     function test_burn_returnsLiquidityAndCollectPaysOut() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         (uint256 m0, uint256 m1) = lp.mint(pool, lower, upper, L);
 
@@ -316,7 +316,7 @@ contract CoreTest is Test {
     }
 
     function test_collect_onlyPositionOwner() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         lp.mint(pool, lower, upper, L);
         trader.swap(pool, true, 1e18, MIN_LIMIT);
@@ -331,7 +331,7 @@ contract CoreTest is Test {
     // ------------------------------------- taxa do protocolo: setFeeProtocol(6,6)
 
     function test_setFeeProtocol_onlyOwnerAndValidRange() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
 
         vm.prank(address(0xBAD));
         vm.expectRevert();
@@ -352,7 +352,7 @@ contract CoreTest is Test {
     }
 
     function test_protocolFee_oneSixth_collectedByOwner() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         lp.mint(pool, lower, upper, L);
         pool.setFeeProtocol(6, 6);
@@ -387,7 +387,7 @@ contract CoreTest is Test {
     }
 
     function test_protocolFee_off_byDefault() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         lp.mint(pool, lower, upper, L);
         trader.swap(pool, true, 1e18, MIN_LIMIT);
@@ -397,7 +397,7 @@ contract CoreTest is Test {
     }
 
     function test_ownerCannotTouchLiquidity_andOwnershipTransfers() public {
-        IUniswapV3Pool pool = _newPool(3000);
+        IKambiodexPool pool = _newPool(3000);
         (int24 lower, int24 upper) = _fullRange(3000);
         (uint256 m0, uint256 m1) = lp.mint(pool, lower, upper, L);
 

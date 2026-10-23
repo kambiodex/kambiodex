@@ -1,10 +1,10 @@
 # KAMBIODEX — contratos (Foundry)
 
-Uniswap v3 original (core `v1.0.0`, periphery `v1.1.1`), sem alterar a lógica. Ver `../CLAUDE.md`.
+Derivado do Uniswap v3 (core `v1.0.0`, periphery `v1.1.1`, (c) Uniswap Labs), sem alterar a lógica; só nomes (identificadores) foram trocados. A KAMBIODEX não é afiliada à Uniswap Labs. Créditos e licenças: `../NOTICE.md`. Ver `../CLAUDE.md`.
 
 ## Alterações no periphery
 
-Só um arquivo do Uniswap foi alterado (`NonfungiblePositionManager`: nome/símbolo do NFT), em `src/periphery/`; o resto vem de `lib/` sem alteração. O descriptor do NFT (`KambiodexPositionDescriptor`) é novo, escrito do zero. Lista completa: `../CHANGES.md`.
+O código do Uniswap está copiado em `src/core/` e `src/periphery/` (com cabeçalhos e LICENSE originais). Mudanças: renomeação de identificadores (`UniswapV3Pool` -> `KambiodexPool`, callbacks `kambiodex*Callback`, etc.), `POOL_INIT_CODE_HASH` novo em `PoolAddress.sol` e, no `NonfungiblePositionManager`, nome/símbolo do NFT. O descriptor do NFT (`KambiodexPositionDescriptor`) é novo, escrito do zero. Lista completa: `../CHANGES.md`.
 Detalhes e diff exato: `../docs/ALTERACOES-PERIPHERY.md`.
 
 ## Testes (não gastam nada, rodam só no computador)

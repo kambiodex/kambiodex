@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {VmSafe} from "forge-std/Vm.sol";
-import {UniswapV3Deployer} from "./helpers/UniswapV3Deployer.sol";
+import {KambiodexDeployer} from "./helpers/KambiodexDeployer.sol";
 
 interface IERC20Meta {
     function symbol() external view returns (string memory);
@@ -27,7 +27,7 @@ interface IERC20Meta {
 ///
 /// Quem paga o deploy (Deployer) NÃO fica aqui: vai na linha de comando, por --account <nome> ou --ledger.
 /// Simulação (sem --broadcast) não envia nada nem grava arquivo.
-contract DeployPolygon is Script, UniswapV3Deployer {
+contract DeployPolygon is Script, KambiodexDeployer {
     uint256 internal constant POLYGON_CHAIN_ID = 137;
 
     /// WPOL (Wrapped POL, ex-WMATIC) na Polygon PoS. Confira em polygonscan.com antes de qualquer envio real.
@@ -64,7 +64,7 @@ contract DeployPolygon is Script, UniswapV3Deployer {
 
         vm.stopBroadcast();
 
-        console2.log("UniswapV3Factory:", d.factory);
+        console2.log("KambiodexFactory:", d.factory);
         console2.log("KambiodexPositionDescriptor:", d.descriptor);
         console2.log("NonfungiblePositionManager:", d.positionManager);
         console2.log("SwapRouter:", d.router);
@@ -87,7 +87,7 @@ contract DeployPolygon is Script, UniswapV3Deployer {
     function addressesJson(Deployed memory d, address owner) public returns (string memory) {
         string memory k = "kambiodex_polygon_deployment";
         vm.serializeUint(k, "chainId", block.chainid);
-        vm.serializeAddress(k, "UniswapV3Factory", d.factory);
+        vm.serializeAddress(k, "KambiodexFactory", d.factory);
         vm.serializeAddress(k, "KambiodexPositionDescriptor", d.descriptor);
         vm.serializeAddress(k, "NonfungiblePositionManager", d.positionManager);
         vm.serializeAddress(k, "SwapRouter", d.router);

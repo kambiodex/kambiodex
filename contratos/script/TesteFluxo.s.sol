@@ -59,7 +59,7 @@ contract TesteFluxo is Script {
         require(block.chainid == 80002, "So na Polygon Amoy (80002)");
 
         string memory json = vm.readFile(string.concat(vm.projectRoot(), "/../deployments/amoy.json"));
-        address factory = json.readAddress(".UniswapV3Factory");
+        address factory = json.readAddress(".KambiodexFactory");
         Ctx memory c;
         c.npm = INPM(json.readAddress(".NonfungiblePositionManager"));
         c.router = ISwapRouterLike(json.readAddress(".SwapRouter"));

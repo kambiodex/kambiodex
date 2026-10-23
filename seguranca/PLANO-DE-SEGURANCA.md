@@ -4,16 +4,16 @@ Versão 1.0 · outubro de 2026 · rede: Polygon PoS (fase 1)
 
 ## 1. Princípios
 
-1. **Não alterar o código do Uniswap v3.** A maior parte dos hacks em cópias de DEX veio de mudanças no código original (ex.: Uranium Finance, 2021).
+1. **Não alterar a lógica do código do Uniswap v3** (a única mudança permitida na base é a renomeação de identificadores, provada por diff arquivo a arquivo; ver `CHANGES.md`). A maior parte dos hacks em cópias de DEX veio de mudanças no código original (ex.: Uranium Finance, 2021).
 2. **Separar o que pode ser atacado:** contratos (blockchain), chaves (carteiras), domínio e site, servidor e dados.
 3. **Nenhuma chave importante em computador, celular, nuvem ou repositório.**
 4. **Detectar rápido e saber agir:** monitoramento automático e plano de incidente escrito antes do lançamento.
 
 ## 2. Contratos inteligentes
 
-- [ ] Usar exatamente as versões oficiais de `v3-core` e `v3-periphery` (mesmo commit e compilador das implantações oficiais).
-- [ ] Única alteração permitida: o necessário para publicar (ex.: `POOL_INIT_CODE_HASH`, endereço do WPOL).
-- [ ] Comparar o bytecode publicado com o das implantações oficiais do Uniswap v3 (deve ser idêntico, exceto os parâmetros de construção).
+- [ ] Usar como base exatamente `v3-core` v1.0.0 e `v3-periphery` v1.1.1 (mesmos commits e compilador das implantações oficiais), copiados em `contratos/src/core` e `src/periphery`; repetir a prova de diff (nomes mapeados de volta = original) antes do deploy.
+- [ ] Alterações permitidas: renomeação de identificadores, `POOL_INIT_CODE_HASH` novo (`0xefa1523a…ac17`) e o necessário para publicar (ex.: endereço do WPOL).
+- [ ] Comparar o bytecode publicado com o compilado deste repositório (deve ser idêntico, exceto os parâmetros de construção). Ele **não** será igual ao das implantações oficiais do Uniswap, por causa da renomeação dos callbacks.
 - [ ] Verificar o código-fonte de todos os contratos na **Polygonscan**.
 - [ ] Testar tudo na **Polygon Amoy** antes da rede principal (pools, faixas, coleta de taxas, `setFeeProtocol`, `collectProtocol`).
 - [ ] Auditoria independente do processo de publicação, dos scripts e da configuração.

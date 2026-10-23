@@ -6,7 +6,7 @@ out = "out"
 libs = ["lib"]
 
 # Versões do compilador FIXAS (nada de "a mais nova instalada"):
-#   0.7.6  -> contratos do Uniswap v3 (core + periphery) e o descriptor da KAMBIODEX
+#   0.7.6  -> contratos KAMBIODEX derivados do Uniswap v3 (src/core, src/periphery) e o descriptor
 #   0.8.37 -> testes e scripts
 # O Foundry escolhe o arquivo de cada versão pelo "pragma"; as restrições abaixo impedem
 # que qualquer arquivo seja compilado por uma versão diferente destas. As bibliotecas em lib/
@@ -14,6 +14,9 @@ libs = ["lib"]
 auto_detect_solc = true
 compilation_restrictions = [
   { paths = "src/Core.sol", version = "=0.7.6" },
+  { paths = "src/core/Kambiodex*.sol", version = "=0.7.6" },
+  { paths = "src/core/libraries/**", version = "=0.7.6" },
+  { paths = "src/core/NoDelegateCall.sol", version = "=0.7.6" },
   { paths = "src/Periphery.sol", version = "=0.7.6" },
   { paths = "src/periphery/**", version = "=0.7.6" },
   { paths = "src/testnet/**", version = "=0.8.37" },
@@ -22,8 +25,8 @@ compilation_restrictions = [
   { paths = "lib/forge-std/**", version = "=0.8.37" },
 ]
 
-# Mesmas opções da implantação oficial do Uniswap v3 (necessário para que o
-# POOL_INIT_CODE_HASH e os endereços das pools saiam iguais ao original).
+# Mesmas opções da implantação oficial do Uniswap v3. O POOL_INIT_CODE_HASH é calculado
+# com estas opções; qualquer mudança aqui muda o hash.
 optimizer = true
 optimizer_runs = 800
 bytecode_hash = "none"
@@ -38,10 +41,8 @@ fs_permissions = [
 
 remappings = [
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-  "@uniswap/lib/=lib/solidity-lib/",
-  "@uniswap/v2-core/=lib/v2-core/",
-  "@uniswap/v3-core/=lib/v3-core/",
-  "@uniswap/v3-periphery/=lib/v3-periphery/",
+  "@kambiodex/core/=src/core/",
+  "@kambiodex/periphery/=src/periphery/",
   "base64-sol/=lib/base64/",
   "forge-std/=lib/forge-std/src/",
 ]

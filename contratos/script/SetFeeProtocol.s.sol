@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IKambiodexPool} from "@kambiodex/core/interfaces/IKambiodexPool.sol";
 
 /// @notice Liga a parte da exchange (1/6 da taxa) em pools já criadas: setFeeProtocol(6, 6).
 ///
@@ -19,7 +19,7 @@ contract SetFeeProtocol is Script {
 
         vm.startBroadcast();
         for (uint256 i = 0; i < pools.length; i++) {
-            IUniswapV3Pool(pools[i]).setFeeProtocol(FEE_PROTOCOL, FEE_PROTOCOL);
+            IKambiodexPool(pools[i]).setFeeProtocol(FEE_PROTOCOL, FEE_PROTOCOL);
             console2.log("setFeeProtocol(6,6) na pool:", pools[i]);
         }
         vm.stopBroadcast();
