@@ -19,7 +19,8 @@ Listed in detail, with hashes, in [CHANGES.md](CHANGES.md):
 2. **`POOL_INIT_CODE_HASH`** in `PoolAddress.sol` updated to the hash of the renamed pool (the callback selectors changed).
 3. **`NonfungiblePositionManager`**: imports, type name and the NFT name/symbol (`KAMBIODEX V3 Positions` / `KBX-V3-POS`).
 4. **Own descriptor**: `KambiodexPositionDescriptor`, written from scratch, replaces the upstream
-   `NonfungibleTokenPositionDescriptor` and `NFTDescriptor` (not deployed).
+   `NonfungibleTokenPositionDescriptor` and `NFTDescriptor` (not deployed). It limits how much of a token's `symbol()`
+   it reads (64 bytes), see "Descriptor hardening" in [CHANGES.md](CHANGES.md).
 5. Wrapper files `Core.sol` and `Periphery.sol` and the minimal `IERC20Metadata` interface (own code).
 
 ## Trademarks and non-affiliation

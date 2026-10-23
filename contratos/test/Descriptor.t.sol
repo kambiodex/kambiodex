@@ -325,6 +325,23 @@ contract DescriptorTest is Test, KambiodexDeployer, TextUtils {
         }
     }
 
+    /// symbol() válido de ~100 KB (cabe nos 50.000 de gás que o descriptor dá à chamada): o tokenURI
+    /// não pode virar um custo de dezenas de milhões de gás nem dar revert.
+    function test_oddTokens_giantSymbol_tokenURIstaysCheap() public {
+        (uint256 id, OddToken odd) = _oddPair(8, 18);
+        assertEq(odd.mode(), 8);
+        uint256 before_ = gasleft();
+        bytes memory uri = bytes(npm.tokenURI{gas: 40_000_000}(id));
+        uint256 used = before_ - gasleft();
+        emit log_named_uint("gas do tokenURI com symbol() de 100 KB", used);
+        assertTrue(_startsWith(uri, "data:application/json;base64,"), "formato do tokenURI");
+        assertLt(used, 5_000_000, "tokenURI caro demais");
+        // símbolo sem caracteres úteis: cai no endereço abreviado
+        bytes memory a = bytes(vm.toString(address(odd)));
+        bytes memory shortAddr = abi.encodePacked(_slice(a, 0, 6), "_", _slice(a, 38, 42));
+        assertTrue(_contains(_lower(bytes(_name(id))), _lower(shortAddr)));
+    }
+
     function test_oddTokens_hugeDecimals_neverRevert() public {
         _oddPair(2, 255);
         _name(1);

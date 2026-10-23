@@ -24,6 +24,8 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
     bytes32 public immutable nativeLabel;
 
     uint256 private constant MAX_SYMBOL = 12;
+    // Máximo de bytes do símbolo copiados antes do filtro: um symbol() gigante não pode encarecer o tokenURI.
+    uint256 private constant MAX_RAW_SYMBOL = 64;
     uint256 private constant MAX_DECIMALS = 36;
     uint256 private constant Q128 = 1 << 128;
 
@@ -321,6 +323,7 @@ contract KambiodexPositionDescriptor is INonfungibleTokenPositionDescriptor {
                         len := mload(add(add(ret, 32), offset))
                     }
                     if (len <= ret.length - 32 - offset) {
+                        if (len > MAX_RAW_SYMBOL) len = MAX_RAW_SYMBOL;
                         raw = new bytes(len);
                         for (uint256 k = 0; k < len; k++) raw[k] = ret[offset + 32 + k];
                     }

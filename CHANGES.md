@@ -75,8 +75,19 @@ SHA-256 modified  08a2a7c18006731e707c2f18719094c37ff1557e420bc9e8229d6aec783d32
 |---|---|---|---|
 | `contratos/src/Core.sol` | GPL-2.0-or-later | `99f2b0422c98607526ed5dd3809a62447020f25cb13da88185413dc4e38796b4` | Imports `KambiodexFactory` and `KambiodexPool` so they compile from this project |
 | `contratos/src/Periphery.sol` | GPL-2.0-or-later | `df129dc70e09fea24ab164b30c12790c262fc5884d435d73f40e4e6ce6e41950` | Imports `SwapRouter` and `QuoterV2` |
-| `contratos/src/periphery/KambiodexPositionDescriptor.sol` | GPL-2.0-or-later | `8c1273b1aa6c3eddd8b375f5876b9bedb7f8784135983bf36c41b48ed4b14c91` | `tokenURI` generator for position NFTs (own code, own texts); replaces upstream `NonfungibleTokenPositionDescriptor` and `NFTDescriptor` |
+| `contratos/src/periphery/KambiodexPositionDescriptor.sol` | GPL-2.0-or-later | `944b9341ec11eb1f355e86de7e358e1560511eb9973f7a9dc6b21918238eba0e` | `tokenURI` generator for position NFTs (own code, own texts); replaces upstream `NonfungibleTokenPositionDescriptor` and `NFTDescriptor`. See "Descriptor hardening" below |
 | `contratos/src/interfaces/IERC20Metadata.sol` | MIT | `d2c7022a475698fede1301937e061a9ece3f7a06f5f97e53c26503eebed335a8` | Minimal `name/symbol/decimals` interface; replaces the UNLICENSED upstream one |
+
+### Descriptor hardening (Oct 2026, after the Slither review)
+
+`KambiodexPositionDescriptor._symbol` now copies at most 64 bytes (`MAX_RAW_SYMBOL`) of a token's `symbol()` before
+filtering it to 12 characters. Before, a token could return a valid `symbol()` of ~100 KB (it fits in the 50,000 gas
+given to the call) and the copy loop made `tokenURI` cost about **20.1 million gas** (it could exceed an `eth_call` limit
+and hide the NFT image). Measured with test `test_oddTokens_giantSymbol_tokenURIstaysCheap`
+(`OddToken` mode 8, 100,000-byte symbol): **20,101,492 gas before, 431,449 after**; a normal `tokenURI` costs about
+311,000-376,000. Side effect: a symbol with more than 64 leading bytes that are all filtered out now falls back to the
+short address instead of showing the valid characters after them. The descriptor deployed on Amoy (`cb3cf9e`) predates this
+change. The upstream-derived contracts are not affected. Test suite: 84 tests.
 
 `KambiodexPositionDescriptor` implements the unchanged upstream interface `INonfungibleTokenPositionDescriptor`.
 The `NonfungiblePositionManager` stores the descriptor address as `immutable`, chosen at deployment.

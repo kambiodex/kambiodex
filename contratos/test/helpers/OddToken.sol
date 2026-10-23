@@ -39,10 +39,20 @@ contract OddToken {
 
     /// mode 0: symbol() dá revert | 1: retorna vazio | 2: bytes32 "MKR" | 3: string com aspas/tags (ataque)
     /// mode 4: lixo com deslocamento gigante | 5: comprimento gigante | 6: string longa | 7: só caracteres proibidos
+    /// mode 8: string válida de 100.000 bytes (cabe no limite de 50.000 de gás que o descriptor dá à chamada)
     fallback() external {
         require(msg.sig == 0x95d89b41, "so symbol()");
         if (mode == 0) revert("sem symbol");
         if (mode == 1) return;
+        if (mode == 8) {
+            // ABI de string: deslocamento 32, tamanho 100000, depois 100000 bytes (zeros, memória nunca escrita).
+            // Montada direto na memória: só a expansão da memória custa gás (~28 mil).
+            assembly {
+                mstore(0, 32)
+                mstore(32, 100000)
+                return(0, add(64, 100000))
+            }
+        }
         bytes memory out;
         if (mode == 2) {
             out = abi.encode(bytes32("MKR"));
