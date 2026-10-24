@@ -1,0 +1,12 @@
+{
+  "KambiodexFactory": "0xB5AF4716B30B561444acAFe0ceabf7A9c4f13bF7",
+  "KambiodexPositionDescriptor": "0xC4C5ea38011D1692A20Ac0bce3b206A85a7B0F17",
+  "NonfungiblePositionManager": "0xa989Fd89735a5dc85E39F9b8967EBfccf51EEa5F",
+  "QuoterV2": "0x12072683275fde73cD46BCf50df58EfdFC36AE6B",
+  "SwapRouter": "0x9393fdF190e58a9cA85704292F91D13B79D04d9A",
+  "WrappedNative": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+  "chainId": 137,
+  "owner": "0xcfaf6Cb6BF850B0088d675BEa655acf98017872E",
+  "poolInitCodeHash": "0xefa1523a9c693954cc7417070043ba156e89adf78e52919814d859ef413bac17",
+  "TokenRegistry": "0x5cD1a9817E95224299D764d2f3177e8b6CA3BeDc"
+}
