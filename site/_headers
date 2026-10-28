@@ -1,0 +1,42 @@
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+
+/brand-kit/*
+  ! X-Robots-Tag
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  ! X-Robots-Tag
+
+/brand-kit/*
+  ! X-Robots-Tag
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  ! X-Robots-Tag
+
+/brand-kit/*
+  ! X-Robots-Tag
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  ! X-Robots-Tag
+
+/brand-kit/*
+  ! X-Robots-Tag
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  ! X-Robots-Tag
+
+/brand-kit/*
+  ! X-Robots-Tag
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  ! X-Robots-Tag

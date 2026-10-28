@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /brand-kit/
+Disallow: /
+
+Sitemap: https://swap.kambiodex.com/sitemap.xml
