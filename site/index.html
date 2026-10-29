@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" class="regwait">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -378,7 +378,7 @@ nav button[aria-selected="true"] .ni{opacity:1;color:var(--gold)}
 .net-warn button{margin-left:10px;background:#fff;color:#B3261E;border:0;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:13px}
 body.wrongnet #go,body.wrongnet #qgo,body.wrongnet #rgo,body.wrongnet #fgo,body.wrongnet #cfGo,body.wrongnet #apGo{opacity:.45;pointer-events:none}
 .demo-bar{background:#8A6417;color:#fff;font-size:13px;line-height:1.4;padding:8px 16px;text-align:center}
-.demo-bar{display:none!important}.chart .ln{fill:none;stroke:var(--gold);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.chart .ar{fill:var(--gold);opacity:.14}.chart .dot{fill:var(--gold)}.chart .cur{stroke:var(--gold);stroke-width:1;opacity:.6}</style>
+.demo-bar{display:none!important}.chart .ln{fill:none;stroke:var(--gold);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.chart .ar{fill:var(--gold);opacity:.14}.chart .dot{fill:var(--gold)}.chart .cur{stroke:var(--gold);stroke-width:1;opacity:.6}/* while the Token Registry has not answered yet, hide the "unverified" tags and warnings (they would flash for approved tokens); swapping stays blocked (fail-closed) */html.regwait .nver,html.regwait #swWarn{visibility:hidden}</style>
 <style id="kbx-apple">
 /* KAMBIODEX — visual novo (toque Apple), só aparência. Nenhuma lógica alterada. */
 :root{
@@ -1801,7 +1801,7 @@ drawPools=function(){
 };
 drawStats=function(){
   const P=Object.values(MK.pools),sum=k=>P.reduce((x,d)=>x+d[k],0),now=Date.now();
-  if(!MK.ready){$("kpis").innerHTML=`<div class="kpi wide"><small>${t("loadChain")}</small></div>`;return}
+  if(!MK.ready){$("kpis").innerHTML=`<div class="kpi wide"><small>${t("loadChain")}</small></div>`;["volChart","tvlChart","statRows"].forEach(i=>{const e=$(i);if(e)e.innerHTML=""});["volRead","tvlRead"].forEach(i=>{const e=$(i);if(e)e.textContent=""});return}
   const sw=P.flatMap(d=>d.swaps),who=ms=>new Set(sw.filter(s=>s.t>now-ms&&s.r.toLowerCase()!==OFF("cRouter").toLowerCase()).map(s=>s.r)).size;
   const USD=usdMap();
   const u=k=>USD[W_(k)]||0,money=usdF;
@@ -1960,9 +1960,11 @@ async function regSync(addrs,quiet){
     /* the Registry is the only authority once it answers: listed (1) = approved, anything else = not approved, even if the token is hard-coded in this file */
     if(k&&k!=="POL"&&k!=="WPOL"){if(st===1){VER[S.net].add(k);if(TOK[k])TOK[k].live=true}else VER[S.net].delete(k)}
   }
+  document.documentElement.classList.remove("regwait");
   if(ch&&!quiet){try{paint()}catch(e){}try{renderAll()}catch(e){}}
 }
 window.regSync=regSync;
+setTimeout(()=>document.documentElement.classList.remove("regwait"),8000); /* if the Registry cannot be read, show the warnings anyway */
 const regTry=n=>regSync().catch(()=>{if(n>0)setTimeout(()=>regTry(n-1),3000)});
 setTimeout(()=>{regTry(8);setInterval(()=>{if(!document.hidden)regTry(2)},300000)},500);
 
