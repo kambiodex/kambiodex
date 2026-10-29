@@ -1,6 +1,6 @@
 # KAMBIODEX contracts
 
-KAMBIODEX is a decentralized exchange (DEX) with concentrated liquidity, launching on Polygon PoS (chain ID 137).
+KAMBIODEX is a decentralized exchange (DEX) with concentrated liquidity, live on Polygon PoS (chain ID 137).
 The contracts are derived from **Uniswap v3** (core v1.0.0, periphery v1.1.1, (c) Uniswap Labs), with minimal, documented
 changes. KAMBIODEX is **not affiliated with Uniswap Labs**; "Uniswap" is a trademark of its owner and is used here only to
 credit the origin of the code. Licence and copyright notices of the original files are kept (see [NOTICE.md](NOTICE.md)).
@@ -44,4 +44,6 @@ Compiler versions are pinned (0.7.6 for the Uniswap-derived contracts, 0.8.37 fo
 
 ## Status
 
-Testnet stage (Polygon Amoy). Nothing is deployed to mainnet until the audit and legal review are complete.
+Live on Polygon PoS mainnet (chain ID 137). Official addresses are in [deployments/polygon.json](deployments/polygon.json); earlier test deployments on Polygon Amoy are kept in the same folder.
+
+The upstream Uniswap v3 code was publicly audited. The KAMBIODEX changes have not had a separate third-party audit yet; our security plan is in [seguranca/](seguranca/). Use at your own risk.
