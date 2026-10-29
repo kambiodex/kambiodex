@@ -10,33 +10,12 @@
   ! X-Robots-Tag
   Cache-Control: public, max-age=3600
 
-/sitemap.xml
-  ! X-Robots-Tag
-
-/brand-kit/*
+/about/*
   ! X-Robots-Tag
   Cache-Control: public, max-age=3600
 
-/sitemap.xml
+/about
   ! X-Robots-Tag
-
-/brand-kit/*
-  ! X-Robots-Tag
-  Cache-Control: public, max-age=3600
-
-/sitemap.xml
-  ! X-Robots-Tag
-
-/brand-kit/*
-  ! X-Robots-Tag
-  Cache-Control: public, max-age=3600
-
-/sitemap.xml
-  ! X-Robots-Tag
-
-/brand-kit/*
-  ! X-Robots-Tag
-  Cache-Control: public, max-age=3600
 
 /sitemap.xml
   ! X-Robots-Tag
